@@ -17,6 +17,21 @@ openai.api_key = settings.OPENAI_API_KEY
 class AIFeatureViewSet(viewsets.GenericViewSet):
     """ViewSet for AI-powered features"""
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = KanjiRecognitionRequestSerializer  # Default serializer for schema generation
+
+    def get_serializer_class(self):
+        """Return appropriate serializer based on action"""
+        if getattr(self, 'swagger_fake_view', False):
+            # Return a default serializer for schema generation
+            return KanjiRecognitionRequestSerializer
+        
+        action_serializers = {
+            'recognize_kanji': KanjiRecognitionRequestSerializer,
+            'generate_mnemonic': MnemonicGenerationRequestSerializer,
+            'generate_pitch_accent': PitchAccentRequestSerializer,
+            'generate_flashcards': FlashcardGenerationRequestSerializer,
+        }
+        return action_serializers.get(self.action, KanjiRecognitionRequestSerializer)
 
     @action(detail=False, methods=['post'])
     def recognize_kanji(self, request):

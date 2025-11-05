@@ -1,4 +1,4 @@
-import { CherryIcon, Target } from "lucide-react";
+import { FlowerIcon, Target } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   AIIcon,
@@ -93,7 +93,7 @@ export default function HomePage() {
         <div className="absolute bottom-20 left-1/4 text-4xl opacity-20 animate-float-delay-2">
           🌸
         </div>
-        <div className="absolute bottom-10 right-1/4 text-5xl opacity-20 animate-float-delay-2">
+        <div className="absolute bottom-10 right-1/3 text-5xl opacity-10 animate-float-delayed">
           🌸
         </div>
 
@@ -106,7 +106,7 @@ export default function HomePage() {
                   isDark ? "bg-gray-700" : "bg-pink-100"
                 } rounded-full p-8 flex items-center justify-center`}
               >
-                <CherryIcon className="w-14 h-14 text-red-500" />
+                <FlowerIcon className="w-14 h-14 text-red-500" />
               </div>
             </div>
 

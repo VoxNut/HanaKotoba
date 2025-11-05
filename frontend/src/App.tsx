@@ -19,13 +19,13 @@ function App() {
         <Route index element={<HomePage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
+        <Route path="hiragana-katakana" element={<HiraganaKatakanaPage />} />
+        <Route path="kanji" element={<KanjiPage />} />
 
         {/* Protected routes */}
         <Route element={<PrivateRoute />}>
           <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="hiragana-katakana" element={<HiraganaKatakanaPage />} />
           <Route path="vocabulary" element={<VocabularyPage />} />
-          <Route path="kanji" element={<KanjiPage />} />
           <Route path="grammar" element={<GrammarPage />} />
           <Route path="practice" element={<PracticePage />} />
           <Route path="flashcards" element={<FlashcardsPage />} />
