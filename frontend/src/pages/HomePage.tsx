@@ -1,4 +1,12 @@
 import { Link, useNavigate } from "react-router-dom";
+import {
+  AIIcon,
+  FlashcardIcon,
+  GrammarIcon,
+  KanjiIcon,
+  PracticeIcon,
+  VocabularyIcon,
+} from "../components/icons";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 
@@ -10,42 +18,42 @@ export default function HomePage() {
   const features = [
     {
       title: "Vocabulary",
-      icon: "📚",
+      icon: VocabularyIcon,
       description:
         "Master 2,000+ words across all JLPT levels with spaced repetition and contextual examples..",
       route: "/vocabulary",
     },
     {
       title: "Kanji",
-      icon: "🖊️",
+      icon: KanjiIcon,
       description:
         "Write and recognize kanji naturally with AI handwriting analysis. Get instant feedback on stroke order, readings, and memorable mnemonics.",
       route: "/kanji",
     },
     {
       title: "Grammar",
-      icon: "📖",
+      icon: GrammarIcon,
       description:
         "Understand N5-N1 grammar patterns through clear explanations, real-world examples, and practice exercises.",
       route: "/grammar",
     },
     {
       title: "Flashcards",
-      icon: "💳",
+      icon: FlashcardIcon,
       description:
         "Study smarter with AI-generated flashcards. Upload any Japanese text and get instant study materials.",
       route: "/flashcards",
     },
     {
       title: "Practice",
-      icon: "✏️",
+      icon: PracticeIcon,
       description:
         "Retain what you learn with scientifically-proven spaced repetition. Review at optimal intervals for maximum retention.",
       route: "/practice",
     },
     {
       title: "AI Features",
-      icon: "🤖",
+      icon: AIIcon,
       description:
         "Get personalized mnemonics for every kanji, accurate pitch accent diagrams, and daily recommendations tailored to your level.",
       route: "/dashboard",
@@ -62,14 +70,14 @@ export default function HomePage() {
     >
       {/* Hero Section */}
       <div className="relative overflow-hidden">
-        {/* Cherry Blossom Decorations */}
-        <div className="absolute top-20 left-10 text-6xl opacity-20 animate-pulse">
+        {/* Cherry Blossom Decorations with Floating Animation */}
+        <div className="absolute top-20 left-10 text-6xl opacity-20 animate-float">
           🌸
         </div>
-        <div className="absolute top-40 right-20 text-5xl opacity-20 animate-pulse delay-1000">
+        <div className="absolute top-40 right-20 text-5xl opacity-20 animate-float-delay-1">
           🌸
         </div>
-        <div className="absolute bottom-20 left-1/4 text-4xl opacity-20 animate-pulse delay-500">
+        <div className="absolute bottom-20 left-1/4 text-4xl opacity-20 animate-float-delay-2">
           🌸
         </div>
 
@@ -150,60 +158,65 @@ export default function HomePage() {
 
         {/* Feature Cards Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature, index) => (
-            <div
-              key={index}
-              className={`rounded-2xl p-8 border transition-all duration-300 transform hover:scale-105 hover:shadow-2xl ${
-                isDark
-                  ? "bg-gradient-to-br from-gray-800 to-gray-900 border-red-900/30 hover:border-red-600/50 hover:shadow-red-900/20"
-                  : "bg-white border-gray-200 hover:border-red-300 hover:shadow-red-200/20"
-              }`}
-            >
-              {/* Icon */}
-              <div className="text-5xl mb-4 text-red-500">{feature.icon}</div>
-
-              {/* Title */}
-              <h3
-                className={`text-2xl font-bold mb-4 ${
-                  isDark ? "text-white" : "text-gray-900"
+          {features.map((feature, index) => {
+            const IconComponent = feature.icon;
+            return (
+              <div
+                key={index}
+                className={`rounded-2xl p-8 border transition-all duration-300 transform hover:scale-105 hover:shadow-2xl ${
+                  isDark
+                    ? "bg-gradient-to-br from-gray-800 to-gray-900 border-red-900/30 hover:border-red-600/50 hover:shadow-red-900/20"
+                    : "bg-white border-gray-200 hover:border-red-300 hover:shadow-red-200/20"
                 }`}
               >
-                {feature.title}
-              </h3>
+                {/* Icon */}
+                <div className="mb-4 text-red-500">
+                  <IconComponent className="w-14 h-14" />
+                </div>
 
-              {/* Description */}
-              <p
-                className={`mb-6 leading-relaxed ${
-                  isDark ? "text-gray-400" : "text-gray-600"
-                }`}
-              >
-                {feature.description}
-              </p>
+                {/* Title */}
+                <h3
+                  className={`text-2xl font-bold mb-4 ${
+                    isDark ? "text-white" : "text-gray-900"
+                  }`}
+                >
+                  {feature.title}
+                </h3>
 
-              {/* CTA Link */}
-              {user ? (
-                <button
-                  onClick={() => navigate(feature.route)}
-                  className="text-red-500 hover:text-red-400 font-medium flex items-center gap-2 group"
+                {/* Description */}
+                <p
+                  className={`mb-6 leading-relaxed ${
+                    isDark ? "text-gray-400" : "text-gray-600"
+                  }`}
                 >
-                  Start Learning
-                  <span className="transform group-hover:translate-x-1 transition-transform">
-                    →
-                  </span>
-                </button>
-              ) : (
-                <Link
-                  to="/register"
-                  className="text-red-500 hover:text-red-400 font-medium flex items-center gap-2 group"
-                >
-                  Start Learning
-                  <span className="transform group-hover:translate-x-1 transition-transform">
-                    →
-                  </span>
-                </Link>
-              )}
-            </div>
-          ))}
+                  {feature.description}
+                </p>
+
+                {/* CTA Link */}
+                {user ? (
+                  <button
+                    onClick={() => navigate(feature.route)}
+                    className="text-red-500 hover:text-red-400 font-medium flex items-center gap-2 group"
+                  >
+                    Start Learning
+                    <span className="transform group-hover:translate-x-1 transition-transform">
+                      →
+                    </span>
+                  </button>
+                ) : (
+                  <Link
+                    to="/register"
+                    className="text-red-500 hover:text-red-400 font-medium flex items-center gap-2 group"
+                  >
+                    Start Learning
+                    <span className="transform group-hover:translate-x-1 transition-transform">
+                      →
+                    </span>
+                  </Link>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
