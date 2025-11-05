@@ -43,14 +43,14 @@ export default function Layout() {
                     Dashboard
                   </Link>
                   <Link
-                    to="/vocabulary"
+                    to="/hiragana-katakana"
                     className={`${
                       isDark
                         ? "text-gray-300 hover:text-red-400"
                         : "text-gray-700 hover:text-primary-600"
                     }`}
                   >
-                    Vocabulary
+                    Hiragana/Katakana
                   </Link>
                   <Link
                     to="/kanji"
@@ -62,6 +62,17 @@ export default function Layout() {
                   >
                     Kanji
                   </Link>
+                  <Link
+                    to="/vocabulary"
+                    className={`${
+                      isDark
+                        ? "text-gray-300 hover:text-red-400"
+                        : "text-gray-700 hover:text-primary-600"
+                    }`}
+                  >
+                    Vocabulary
+                  </Link>
+
                   <Link
                     to="/grammar"
                     className={`${

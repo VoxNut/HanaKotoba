@@ -1,4 +1,4 @@
-import { Target } from "lucide-react";
+import { CherryIcon, Target } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   AIIcon,
@@ -6,6 +6,7 @@ import {
   GrammarIcon,
   KanjiIcon,
   PracticeIcon,
+  Scroll,
   VocabularyIcon,
 } from "../components/icons";
 import { useAuthStore } from "../store/authStore";
@@ -18,11 +19,11 @@ export default function HomePage() {
 
   const features = [
     {
-      title: "Vocabulary",
-      icon: VocabularyIcon,
+      title: "Hiragana/Katakana",
+      icon: Scroll,
       description:
-        "Master 2,000+ words across all JLPT levels with spaced repetition and contextual examples..",
-      route: "/vocabulary",
+        "Master the Japanese phonetic alphabets with comprehensive charts and interative practive",
+      route: "/hiragana-katakana",
     },
     {
       title: "Kanji",
@@ -30,6 +31,13 @@ export default function HomePage() {
       description:
         "Write and recognize kanji naturally with AI handwriting analysis. Get instant feedback on stroke order, readings, and memorable mnemonics.",
       route: "/kanji",
+    },
+    {
+      title: "Vocabulary",
+      icon: VocabularyIcon,
+      description:
+        "Master 2,000+ words across all JLPT levels with spaced repetition and contextual examples..",
+      route: "/vocabulary",
     },
     {
       title: "Grammar",
@@ -70,7 +78,11 @@ export default function HomePage() {
       }`}
     >
       {/* Hero Section */}
-      <div className="relative overflow-hidden">
+      <div
+        className={`relative overflow-hidden ${
+          isDark ? "" : "bg-gradient-to-b from-pink-100 to-white"
+        }`}
+      >
         {/* Cherry Blossom Decorations with Floating Animation */}
         <div className="absolute top-20 left-10 text-6xl opacity-20 animate-float">
           🌸
@@ -81,6 +93,9 @@ export default function HomePage() {
         <div className="absolute bottom-20 left-1/4 text-4xl opacity-20 animate-float-delay-2">
           🌸
         </div>
+        <div className="absolute bottom-10 right-1/4 text-5xl opacity-20 animate-float-delay-2">
+          🌸
+        </div>
 
         <div className="max-w-7xl mx-auto px-4 py-24 sm:px-6 lg:px-8">
           <div className="text-center relative z-10">
@@ -88,10 +103,10 @@ export default function HomePage() {
             <div className="flex justify-center mb-8">
               <div
                 className={`${
-                  isDark ? "bg-gray-700" : "bg-gray-200"
-                } rounded-full p-8`}
+                  isDark ? "bg-gray-700" : "bg-pink-100"
+                } rounded-full p-8 flex items-center justify-center`}
               >
-                <span className="text-6xl">🍒</span>
+                <CherryIcon className="w-14 h-14 text-red-500" />
               </div>
             </div>
 

@@ -4,6 +4,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import DashboardPage from "./pages/DashboardPage";
 import FlashcardsPage from "./pages/FlashcardsPage";
 import GrammarPage from "./pages/GrammarPage";
+import HiraganaKatakanaPage from "./pages/HiraganaKatakanaPage";
 import HomePage from "./pages/HomePage";
 import KanjiPage from "./pages/KanjiPage";
 import LoginPage from "./pages/LoginPage";
@@ -22,6 +23,7 @@ function App() {
         {/* Protected routes */}
         <Route element={<PrivateRoute />}>
           <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="hiragana-katakana" element={<HiraganaKatakanaPage />} />
           <Route path="vocabulary" element={<VocabularyPage />} />
           <Route path="kanji" element={<KanjiPage />} />
           <Route path="grammar" element={<GrammarPage />} />
