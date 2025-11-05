@@ -1,3 +1,4 @@
+import { Moon, Sun } from "lucide-react";
 import { Link, Outlet } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
@@ -106,7 +107,11 @@ export default function Layout() {
                 }`}
                 aria-label="Toggle theme"
               >
-                {isDark ? "☀️" : "🌙"}
+                {isDark ? (
+                  <Sun className="w-5 h-5" />
+                ) : (
+                  <Moon className="w-5 h-5" />
+                )}
               </button>
 
               {isAuthenticated ? (

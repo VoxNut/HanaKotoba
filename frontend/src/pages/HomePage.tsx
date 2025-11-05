@@ -1,3 +1,4 @@
+import { Target } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   AIIcon,
@@ -119,7 +120,7 @@ export default function HomePage() {
                   onClick={() => navigate("/dashboard")}
                   className="bg-red-600 hover:bg-red-700 text-white px-10 py-4 rounded-full text-lg font-medium transition-all transform hover:scale-105 shadow-lg flex items-center gap-2"
                 >
-                  <span>🎯</span>
+                  <Target className="w-5 h-5" />
                   Go to Dashboard
                 </button>
               ) : (
@@ -127,7 +128,7 @@ export default function HomePage() {
                   to="/register"
                   className="bg-red-600 hover:bg-red-700 text-white px-10 py-4 rounded-full text-lg font-medium transition-all transform hover:scale-105 shadow-lg flex items-center gap-2"
                 >
-                  <span>🎯</span>
+                  <Target className="w-5 h-5" />
                   Start Learning
                 </Link>
               )}
