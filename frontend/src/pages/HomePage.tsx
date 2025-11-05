@@ -1,6 +1,10 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuthStore } from "../store/authStore";
 
 export default function HomePage() {
+  const user = useAuthStore((state) => state.user);
+  const navigate = useNavigate();
+
   return (
     <div className="bg-gradient-to-b from-white to-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
@@ -18,18 +22,31 @@ export default function HomePage() {
           </p>
 
           <div className="flex justify-center gap-4">
-            <Link
-              to="/register"
-              className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-lg text-lg font-medium"
-            >
-              Start Learning Free
-            </Link>
-            <Link
-              to="/login"
-              className="bg-white border-2 border-gray-300 hover:border-gray-400 px-8 py-3 rounded-lg text-lg font-medium"
-            >
-              Login
-            </Link>
+            {user ? (
+              // Show "Go to Dashboard" if logged in
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-lg text-lg font-medium"
+              >
+                Go to Dashboard
+              </button>
+            ) : (
+              // Show register and login buttons if not logged in
+              <>
+                <Link
+                  to="/register"
+                  className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-lg text-lg font-medium"
+                >
+                  Start Learning Free
+                </Link>
+                <Link
+                  to="/login"
+                  className="bg-white border-2 border-gray-300 hover:border-gray-400 px-8 py-3 rounded-lg text-lg font-medium"
+                >
+                  Login
+                </Link>
+              </>
+            )}
           </div>
         </div>
 
