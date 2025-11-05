@@ -1,99 +1,209 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
+import { useThemeStore } from "../store/themeStore";
 
 export default function HomePage() {
   const user = useAuthStore((state) => state.user);
+  const isDark = useThemeStore((state) => state.isDark);
   const navigate = useNavigate();
 
-  return (
-    <div className="bg-gradient-to-b from-white to-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            <span className="text-primary-600">花言葉</span> HanaKotoba
-          </h1>
-          <p className="text-xl text-gray-600 mb-8">
-            Master Japanese with AI-Powered Learning
-          </p>
-          <p className="text-lg text-gray-500 max-w-2xl mx-auto mb-12">
-            Learn Hiragana, Katakana, Kanji, Vocabulary, and Grammar with
-            intelligent spaced repetition, handwriting recognition, and
-            AI-generated mnemonics.
-          </p>
+  const features = [
+    {
+      title: "Vocabulary",
+      icon: "📚",
+      description:
+        "Master 2,000+ words across all JLPT levels with spaced repetition and contextual examples..",
+      route: "/vocabulary",
+    },
+    {
+      title: "Kanji",
+      icon: "🖊️",
+      description:
+        "Write and recognize kanji naturally with AI handwriting analysis. Get instant feedback on stroke order, readings, and memorable mnemonics.",
+      route: "/kanji",
+    },
+    {
+      title: "Grammar",
+      icon: "📖",
+      description:
+        "Understand N5-N1 grammar patterns through clear explanations, real-world examples, and practice exercises.",
+      route: "/grammar",
+    },
+    {
+      title: "Flashcards",
+      icon: "💳",
+      description:
+        "Study smarter with AI-generated flashcards. Upload any Japanese text and get instant study materials.",
+      route: "/flashcards",
+    },
+    {
+      title: "Practice",
+      icon: "✏️",
+      description:
+        "Retain what you learn with scientifically-proven spaced repetition. Review at optimal intervals for maximum retention.",
+      route: "/practice",
+    },
+    {
+      title: "AI Features",
+      icon: "🤖",
+      description:
+        "Get personalized mnemonics for every kanji, accurate pitch accent diagrams, and daily recommendations tailored to your level.",
+      route: "/dashboard",
+    },
+  ];
 
-          <div className="flex justify-center gap-4">
-            {user ? (
-              // Show "Go to Dashboard" if logged in
-              <button
-                onClick={() => navigate("/dashboard")}
-                className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-lg text-lg font-medium"
-              >
-                Go to Dashboard
-              </button>
-            ) : (
-              // Show register and login buttons if not logged in
-              <>
-                <Link
-                  to="/register"
-                  className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-lg text-lg font-medium"
-                >
-                  Start Learning Free
-                </Link>
-                <Link
-                  to="/login"
-                  className="bg-white border-2 border-gray-300 hover:border-gray-400 px-8 py-3 rounded-lg text-lg font-medium"
-                >
-                  Login
-                </Link>
-              </>
-            )}
-          </div>
+  return (
+    <div
+      className={`min-h-screen ${
+        isDark
+          ? "bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900"
+          : "bg-gradient-to-b from-white via-gray-50 to-gray-100"
+      }`}
+    >
+      {/* Hero Section */}
+      <div className="relative overflow-hidden">
+        {/* Cherry Blossom Decorations */}
+        <div className="absolute top-20 left-10 text-6xl opacity-20 animate-pulse">
+          🌸
+        </div>
+        <div className="absolute top-40 right-20 text-5xl opacity-20 animate-pulse delay-1000">
+          🌸
+        </div>
+        <div className="absolute bottom-20 left-1/4 text-4xl opacity-20 animate-pulse delay-500">
+          🌸
         </div>
 
-        <div className="mt-20 grid md:grid-cols-3 gap-8">
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-xl font-semibold mb-3">🖊️ Kanji Recognition</h3>
-            <p className="text-gray-600">
-              Draw kanji with your mouse and get instant AI-powered recognition
-            </p>
-          </div>
+        <div className="max-w-7xl mx-auto px-4 py-24 sm:px-6 lg:px-8">
+          <div className="text-center relative z-10">
+            {/* Icon */}
+            <div className="flex justify-center mb-8">
+              <div
+                className={`${
+                  isDark ? "bg-gray-700" : "bg-gray-200"
+                } rounded-full p-8`}
+              >
+                <span className="text-6xl">🍒</span>
+              </div>
+            </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-xl font-semibold mb-3">🧠 Smart Mnemonics</h3>
-            <p className="text-gray-600">
-              AI-generated stories make kanji memorable and easy to learn
-            </p>
-          </div>
+            {/* Title */}
+            <h1
+              className={`text-6xl md:text-7xl font-bold mb-6 ${
+                isDark ? "text-white" : "text-gray-900"
+              }`}
+            >
+              日本語を勉強しましょう！
+            </h1>
 
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-xl font-semibold mb-3">📚 Spaced Repetition</h3>
-            <p className="text-gray-600">
-              Anki-style SRS algorithm ensures efficient long-term retention
+            {/* Subtitle */}
+            <p
+              className={`text-xl md:text-2xl mb-8 max-w-4xl mx-auto ${
+                isDark ? "text-gray-300" : "text-gray-700"
+              }`}
+            >
+              Master Japanese through AI-powered learning
             </p>
-          </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-xl font-semibold mb-3">
-              🎯 Daily Recommendations
-            </h3>
-            <p className="text-gray-600">
-              Personalized kanji and vocabulary suggestions every day
-            </p>
+            {/* CTA Button */}
+            <div className="flex justify-center">
+              {user ? (
+                <button
+                  onClick={() => navigate("/dashboard")}
+                  className="bg-red-600 hover:bg-red-700 text-white px-10 py-4 rounded-full text-lg font-medium transition-all transform hover:scale-105 shadow-lg flex items-center gap-2"
+                >
+                  <span>🎯</span>
+                  Go to Dashboard
+                </button>
+              ) : (
+                <Link
+                  to="/register"
+                  className="bg-red-600 hover:bg-red-700 text-white px-10 py-4 rounded-full text-lg font-medium transition-all transform hover:scale-105 shadow-lg flex items-center gap-2"
+                >
+                  <span>🎯</span>
+                  Start Learning
+                </Link>
+              )}
+            </div>
           </div>
+        </div>
+      </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-xl font-semibold mb-3">🗣️ Pitch Accent</h3>
-            <p className="text-gray-600">
-              Learn proper pronunciation with AI-generated pitch patterns
-            </p>
-          </div>
+      {/* Complete Learning System Section */}
+      <div className="max-w-7xl mx-auto px-4 py-20 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2
+            className={`text-4xl md:text-5xl font-bold mb-4 ${
+              isDark ? "text-white" : "text-gray-900"
+            }`}
+          >
+            Complete Japanese Learning System
+          </h2>
+          <p
+            className={`text-xl max-w-3xl mx-auto ${
+              isDark ? "text-gray-400" : "text-gray-600"
+            }`}
+          >
+            Master Japanese with our beautifully designed learning modules, each
+            crafted to guide you through your language journey.
+          </p>
+        </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-xl font-semibold mb-3">💳 Smart Flashcards</h3>
-            <p className="text-gray-600">
-              Auto-generate flashcards from any Japanese text
-            </p>
-          </div>
+        {/* Feature Cards Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {features.map((feature, index) => (
+            <div
+              key={index}
+              className={`rounded-2xl p-8 border transition-all duration-300 transform hover:scale-105 hover:shadow-2xl ${
+                isDark
+                  ? "bg-gradient-to-br from-gray-800 to-gray-900 border-red-900/30 hover:border-red-600/50 hover:shadow-red-900/20"
+                  : "bg-white border-gray-200 hover:border-red-300 hover:shadow-red-200/20"
+              }`}
+            >
+              {/* Icon */}
+              <div className="text-5xl mb-4 text-red-500">{feature.icon}</div>
+
+              {/* Title */}
+              <h3
+                className={`text-2xl font-bold mb-4 ${
+                  isDark ? "text-white" : "text-gray-900"
+                }`}
+              >
+                {feature.title}
+              </h3>
+
+              {/* Description */}
+              <p
+                className={`mb-6 leading-relaxed ${
+                  isDark ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
+                {feature.description}
+              </p>
+
+              {/* CTA Link */}
+              {user ? (
+                <button
+                  onClick={() => navigate(feature.route)}
+                  className="text-red-500 hover:text-red-400 font-medium flex items-center gap-2 group"
+                >
+                  Start Learning
+                  <span className="transform group-hover:translate-x-1 transition-transform">
+                    →
+                  </span>
+                </button>
+              ) : (
+                <Link
+                  to="/register"
+                  className="text-red-500 hover:text-red-400 font-medium flex items-center gap-2 group"
+                >
+                  Start Learning
+                  <span className="transform group-hover:translate-x-1 transition-transform">
+                    →
+                  </span>
+                </Link>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </div>

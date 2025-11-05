@@ -1,15 +1,15 @@
-import { Routes, Route } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
-import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import DashboardPage from "./pages/DashboardPage";
-import VocabularyPage from "./pages/VocabularyPage";
-import KanjiPage from "./pages/KanjiPage";
-import GrammarPage from "./pages/GrammarPage";
-import PracticePage from "./pages/PracticePage";
-import FlashcardsPage from "./pages/FlashcardsPage";
 import PrivateRoute from "./components/PrivateRoute";
+import DashboardPage from "./pages/DashboardPage";
+import FlashcardsPage from "./pages/FlashcardsPage";
+import GrammarPage from "./pages/GrammarPage";
+import HomePage from "./pages/HomePage";
+import KanjiPage from "./pages/KanjiPage";
+import LoginPage from "./pages/LoginPage";
+import PracticePage from "./pages/PracticePage";
+import RegisterPage from "./pages/RegisterPage";
+import VocabularyPage from "./pages/VocabularyPage";
 
 function App() {
   return (

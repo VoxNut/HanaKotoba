@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { useAuthStore } from "../store/authStore";
+import { Link, useNavigate } from "react-router-dom";
 import { authService } from "../services/auth";
+import { useAuthStore } from "../store/authStore";
+import { useThemeStore } from "../store/themeStore";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -16,6 +17,7 @@ export default function RegisterPage() {
 
   const navigate = useNavigate();
   const setUser = useAuthStore((state) => state.setUser);
+  const isDark = useThemeStore((state) => state.isDark);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,10 +34,15 @@ export default function RegisterPage() {
       const user = await authService.register(formData);
       setUser(user);
       navigate("/dashboard");
-    } catch (err: any) {
-      setError(
-        err.response?.data?.detail || "Registration failed. Please try again."
-      );
+    } catch (err: unknown) {
+      let message = "Registration failed. Please try again.";
+      if (typeof err === "object" && err !== null) {
+        const maybeAxios = err as { response?: { data?: { detail?: string } } };
+        if (maybeAxios.response?.data?.detail) {
+          message = maybeAxios.response.data.detail;
+        }
+      }
+      setError(message);
     } finally {
       setIsLoading(false);
     }
@@ -43,8 +50,18 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-8">
-      <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
-        <h2 className="text-3xl font-bold text-center mb-6">Create Account</h2>
+      <div
+        className={`max-w-md w-full p-8 rounded-lg shadow-md ${
+          isDark ? "bg-gray-800" : "bg-white"
+        }`}
+      >
+        <h2
+          className={`text-3xl font-bold text-center mb-6 ${
+            isDark ? "text-white" : "text-gray-900"
+          }`}
+        >
+          Create Account
+        </h2>
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
@@ -54,7 +71,11 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              className={`block text-sm font-medium mb-1 ${
+                isDark ? "text-gray-200" : "text-gray-700"
+              }`}
+            >
               Username
             </label>
             <input
@@ -63,13 +84,21 @@ export default function RegisterPage() {
               onChange={(e) =>
                 setFormData({ ...formData, username: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                isDark
+                  ? "bg-gray-700 border-gray-600 text-white focus:ring-red-500"
+                  : "bg-white border-gray-300 text-gray-900 focus:ring-primary-500"
+              }`}
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              className={`block text-sm font-medium mb-1 ${
+                isDark ? "text-gray-200" : "text-gray-700"
+              }`}
+            >
               Email
             </label>
             <input
@@ -78,13 +107,21 @@ export default function RegisterPage() {
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                isDark
+                  ? "bg-gray-700 border-gray-600 text-white focus:ring-red-500"
+                  : "bg-white border-gray-300 text-gray-900 focus:ring-primary-500"
+              }`}
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              className={`block text-sm font-medium mb-1 ${
+                isDark ? "text-gray-200" : "text-gray-700"
+              }`}
+            >
               Password
             </label>
             <input
@@ -93,14 +130,22 @@ export default function RegisterPage() {
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                isDark
+                  ? "bg-gray-700 border-gray-600 text-white focus:ring-red-500"
+                  : "bg-white border-gray-300 text-gray-900 focus:ring-primary-500"
+              }`}
               required
               minLength={8}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              className={`block text-sm font-medium mb-1 ${
+                isDark ? "text-gray-200" : "text-gray-700"
+              }`}
+            >
               Confirm Password
             </label>
             <input
@@ -109,14 +154,22 @@ export default function RegisterPage() {
               onChange={(e) =>
                 setFormData({ ...formData, password_confirm: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                isDark
+                  ? "bg-gray-700 border-gray-600 text-white focus:ring-red-500"
+                  : "bg-white border-gray-300 text-gray-900 focus:ring-primary-500"
+              }`}
               required
               minLength={8}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              className={`block text-sm font-medium mb-1 ${
+                isDark ? "text-gray-200" : "text-gray-700"
+              }`}
+            >
               Current Japanese Level
             </label>
             <select
@@ -124,7 +177,11 @@ export default function RegisterPage() {
               onChange={(e) =>
                 setFormData({ ...formData, japanese_level: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                isDark
+                  ? "bg-gray-700 border-gray-600 text-white focus:ring-red-500"
+                  : "bg-white border-gray-300 text-gray-900 focus:ring-primary-500"
+              }`}
             >
               <option value="N5">Beginner (N5)</option>
               <option value="N4">Elementary (N4)</option>
@@ -137,17 +194,21 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white py-2 rounded-md font-medium"
+            className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white py-2 rounded-md font-medium"
           >
             {isLoading ? "Creating account..." : "Sign Up"}
           </button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-gray-600">
+        <p
+          className={`mt-4 text-center text-sm ${
+            isDark ? "text-gray-400" : "text-gray-600"
+          }`}
+        >
           Already have an account?{" "}
           <Link
             to="/login"
-            className="text-primary-600 hover:text-primary-700 font-medium"
+            className="text-red-500 hover:text-red-400 font-medium"
           >
             Login
           </Link>
