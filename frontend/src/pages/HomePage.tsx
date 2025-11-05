@@ -1,14 +1,16 @@
-import { FlowerIcon, Target } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
 import {
-  AIIcon,
-  FlashcardIcon,
-  GrammarIcon,
-  KanjiIcon,
-  PracticeIcon,
+  BookOpen,
+  BookOpenCheck,
+  ClipboardCheck,
+  FlowerIcon,
+  LayoutGrid,
+  PenTool,
   Scroll,
-  VocabularyIcon,
-} from "../components/icons";
+  Sparkles,
+  Target,
+} from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 
@@ -27,42 +29,42 @@ export default function HomePage() {
     },
     {
       title: "Kanji",
-      icon: KanjiIcon,
+      icon: PenTool,
       description:
         "Write and recognize kanji naturally with AI handwriting analysis. Get instant feedback on stroke order, readings, and memorable mnemonics.",
       route: "/kanji",
     },
     {
       title: "Vocabulary",
-      icon: VocabularyIcon,
+      icon: BookOpen,
       description:
         "Master 2,000+ words across all JLPT levels with spaced repetition and contextual examples..",
       route: "/vocabulary",
     },
     {
       title: "Grammar",
-      icon: GrammarIcon,
+      icon: BookOpenCheck,
       description:
         "Understand N5-N1 grammar patterns through clear explanations, real-world examples, and practice exercises.",
       route: "/grammar",
     },
     {
       title: "Flashcards",
-      icon: FlashcardIcon,
+      icon: LayoutGrid,
       description:
         "Study smarter with AI-generated flashcards. Upload any Japanese text and get instant study materials.",
       route: "/flashcards",
     },
     {
       title: "Practice",
-      icon: PracticeIcon,
+      icon: ClipboardCheck,
       description:
         "Retain what you learn with scientifically-proven spaced repetition. Review at optimal intervals for maximum retention.",
       route: "/practice",
     },
     {
       title: "AI Features",
-      icon: AIIcon,
+      icon: Sparkles,
       description:
         "Get personalized mnemonics for every kanji, accurate pitch accent diagrams, and daily recommendations tailored to your level.",
       route: "/dashboard",
