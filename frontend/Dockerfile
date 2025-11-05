@@ -1,16 +1,15 @@
-# Use a newer version to reduce vulnerabilities
-FROM node:20-alpine AS build
+FROM node:3.21 AS build
 
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci
 
 COPY . .
 RUN npm run build
 
-# Production stage - use specific nginx version with fewer vulnerabilities
-FROM nginx:1.27-alpine
+# Production stage
+FROM nginx:alpine
 
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
