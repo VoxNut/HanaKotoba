@@ -1,24 +1,63 @@
 from rest_framework import viewsets, filters, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
+from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Kanji, Vocabulary, KanjiMnemonic, UserVocabulary, UserKanji
 from .serializers import (
-    KanjiSerializer, VocabularySerializer, KanjiMnemonicSerializer,
-    UserVocabularySerializer, UserKanjiSerializer
+    KanjiSerializer, KanjiPreviewSerializer, VocabularySerializer,
+    KanjiMnemonicSerializer, UserVocabularySerializer, UserKanjiSerializer
 )
 
 
+class KanjiListPagination(PageNumberPagination):
+    page_size = 50
+    page_size_query_param = 'page_size'
+    max_page_size = 200
+
+
 class KanjiViewSet(viewsets.ModelViewSet):
-    """ViewSet for Kanji management"""
+    """ViewSet for Kanji management
+
+    Notes:
+    - Use a lightweight serializer for list operations to avoid returning `svg_data` and other large fields.
+    - Provide a dedicated `svg` action to fetch SVG content on demand.
+    """
     queryset = Kanji.objects.all()
     serializer_class = KanjiSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    filter_backends = [DjangoFilterBackend,
-                       filters.SearchFilter, filters.OrderingFilter]
+    pagination_class = KanjiListPagination
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['jlpt_level', 'stroke_count']
     search_fields = ['character', 'meaning', 'kun_reading', 'on_reading']
     ordering_fields = ['frequency_rank', 'stroke_count', 'created_at']
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # For list operations, avoid loading `svg_data` and `examples` to minimize DB transfer.
+        if self.action in ('list',):
+            return qs.only('id', 'character', 'meaning', 'kun_reading', 'on_reading', 'jlpt_level', 'stroke_count', 'radical', 'frequency_rank')
+        return qs
+
+    def get_serializer_class(self):
+        # Use preview serializer on list to keep payloads small
+        if self.action == 'list':
+            return KanjiPreviewSerializer
+        return KanjiSerializer
+
+    # Cache SVG responses for an hour to reduce DB hits and repeated rendering
+    @action(detail=True, methods=['get'])
+    @method_decorator(cache_page(60 * 60))
+    def svg(self, request, pk=None):
+        kanji = self.get_object()
+        svg = kanji.svg_data or ''
+        if not svg:
+            return Response({'detail': 'SVG not available for this kanji.'}, status=status.HTTP_404_NOT_FOUND)
+        # Return raw SVG with correct content type so frontend can embed it directly
+        return HttpResponse(svg, content_type='image/svg+xml')
 
     @action(detail=True, methods=['get'])
     def mnemonics(self, request, pk=None):
