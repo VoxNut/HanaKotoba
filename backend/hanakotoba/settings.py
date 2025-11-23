@@ -146,10 +146,17 @@ SIMPLE_JWT = {
 # CORS Settings
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:5173,http://127.0.0.1:5173'
+    # Include both common Vite dev ports (5173 & 5174) for local development
+    default='http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174'
 ).split(',')
 
 CORS_ALLOW_CREDENTIALS = True
+
+# In development it's often convenient to allow all origins so local frontends can
+# access the API without running into preflight issues. Enable this only when
+# DEBUG is True.
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
 
 # OpenAI Configuration
 OPENAI_API_KEY = config('OPENAI_API_KEY', default='')

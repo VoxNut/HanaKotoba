@@ -1,4 +1,5 @@
 import { Moon, Sun } from "lucide-react";
+import AudioControl from "./AudioControl";
 import { Link, Outlet } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
@@ -108,6 +109,7 @@ export default function Layout() {
             </div>
 
             <div className="flex items-center space-x-4">
+              <AudioControl />
               {/* Theme Toggle Button */}
               <button
                 onClick={toggleTheme}
