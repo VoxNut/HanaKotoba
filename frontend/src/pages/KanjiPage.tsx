@@ -1,5 +1,5 @@
 import { Filter, Search, X } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import api from "../services/api";
 import { useThemeStore } from "../store/themeStore";
 
@@ -19,79 +19,80 @@ interface Kanji {
 export default function KanjiPage() {
   const isDark = useThemeStore((state) => state.isDark);
   const [kanjis, setKanjis] = useState<Kanji[]>([]);
-  const [filteredKanjis, setFilteredKanjis] = useState<Kanji[]>([]);
+  // filteredKanjis removed: we'll use `kanjis` as the current displayed list from server
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedJlpt, setSelectedJlpt] = useState<string | null>(null);
   const [selectedKanji, setSelectedKanji] = useState<Kanji | null>(null);
+  const pageRef = useRef<number>(1);
+  const [hasNext, setHasNext] = useState(true);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  useEffect(() => {
-    fetchKanjis();
-  }, []);
-
-  const fetchKanjis = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Fetch all kanji (handle pagination)
-      let allKanjis: Kanji[] = [];
-      let nextUrl: string | null = "/vocabulary/kanji/";
-
-      while (nextUrl) {
-        const response: { data: { results?: Kanji[]; next?: string | null } } =
-          await api.get(nextUrl);
-        const results = response.data.results || [];
-        allKanjis = [...allKanjis, ...results];
-
-        // Get next page URL (remove the base URL part if present)
-        nextUrl = response.data.next || null;
-        if (nextUrl) {
-          nextUrl = nextUrl
-            .replace(/^https?:\/\/[^/]+/, "")
-            .replace("/api", "");
+  // Wrap fetchKanjis in useCallback to satisfy hook deps
+  // Stable fetch to avoid changing identity when page updates.
+  const fetchKanjis = useCallback(
+    async ({ reset = false }: { reset?: boolean } = {}) => {
+      try {
+        if (reset) {
+          setLoading(true);
+          pageRef.current = 1;
+        } else {
+          setLoadingMore(true);
         }
+        setError(null);
+
+        const fetchPage = reset ? 1 : pageRef.current;
+        const params: any = { page: fetchPage, page_size: 50 };
+        if (searchQuery) params.search = searchQuery;
+        if (selectedJlpt) params.jlpt_level = selectedJlpt;
+
+        const response = await api.get("/vocabulary/kanji/", { params });
+        const data = response.data;
+        const results: Kanji[] = data.results || [];
+
+        if (reset) {
+          setKanjis(results);
+          // prepare next page
+          pageRef.current = 2;
+        } else {
+          setKanjis((prev) => [...prev, ...results]);
+          pageRef.current = pageRef.current + 1;
+        }
+        setHasNext(Boolean(data.next));
+        setTotalCount(typeof data.count === "number" ? data.count : null);
+      } catch (error: unknown) {
+        console.error("Error fetching kanji:", error);
+        const errorMessage =
+          error instanceof Error ? error.message : "Failed to load kanji";
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
       }
+    },
+    [searchQuery, selectedJlpt]
+  );
 
-      console.log(`Loaded ${allKanjis.length} kanji`);
-      setKanjis(allKanjis);
-    } catch (error: unknown) {
-      console.error("Error fetching kanji:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to load kanji";
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filterKanjis = useCallback(() => {
-    let filtered = kanjis;
-
-    // Filter by JLPT level
-    if (selectedJlpt) {
-      filtered = filtered.filter((k) => k.jlpt_level === selectedJlpt);
-    }
-
-    // Filter by search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (k) =>
-          k.character.includes(query) ||
-          k.meaning.toLowerCase().includes(query) ||
-          k.kun_reading.toLowerCase().includes(query) ||
-          k.on_reading.toLowerCase().includes(query)
-      );
-    }
-
-    setFilteredKanjis(filtered);
-  }, [kanjis, selectedJlpt, searchQuery]);
-
+  // initial load
   useEffect(() => {
-    filterKanjis();
-  }, [filterKanjis]);
+    fetchKanjis({ reset: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  // (duplicate removed) fetching handled by the useCallback `fetchKanjis` above
+
+  // When search or JLPT filter changes, reset results and fetch page 1 (debounced)
+  // When search or JLPT filter changes, reset results and fetch page 1 (debounced).
+  // Depend only on the search/filter values so page changes don't re-trigger.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchKanjis({ reset: true });
+    }, 300); // debounce 300ms
+    return () => clearTimeout(t);
+  }, [searchQuery, selectedJlpt, fetchKanjis]);
+
+  // No SVG lazy-loading: SVGs are no longer fetched from the server here.
 
   const jlptLevels = ["N5", "N4", "N3", "N2", "N1"];
 
@@ -184,7 +185,7 @@ export default function KanjiPage() {
           <div
             className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}
           >
-            Showing {filteredKanjis.length} of {kanjis.length} kanji
+            Showing {kanjis.length} of {totalCount ?? kanjis.length} kanji
           </div>
         </div>
 
@@ -209,13 +210,13 @@ export default function KanjiPage() {
               {error}
             </p>
             <button
-              onClick={fetchKanjis}
+              onClick={() => fetchKanjis({ reset: true })}
               className="mt-4 bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-all"
             >
               Try Again
             </button>
           </div>
-        ) : filteredKanjis.length === 0 ? (
+        ) : kanjis.length === 0 ? (
           <div
             className={`text-center py-12 ${
               isDark ? "text-gray-400" : "text-gray-600"
@@ -224,30 +225,45 @@ export default function KanjiPage() {
             <p className="text-xl">No kanji found matching your search.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
-            {filteredKanjis.map((kanji) => (
-              <button
-                key={kanji.id}
-                onClick={() => setSelectedKanji(kanji)}
-                className={`aspect-square rounded-xl border transition-all duration-200 hover:scale-110 hover:shadow-lg ${
-                  isDark
-                    ? "bg-gray-800 border-gray-700 hover:border-red-600"
-                    : "bg-white border-gray-200 hover:border-red-400"
-                }`}
-              >
-                <div className="h-full flex flex-col items-center justify-center p-2">
-                  <div className="text-3xl md:text-4xl font-bold japanese-text mb-1">
-                    {kanji.character}
-                  </div>
-                  {kanji.jlpt_level && (
-                    <div className="text-xs text-red-500 font-medium">
-                      {kanji.jlpt_level}
+          <>
+            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
+              {kanjis.map((kanji: Kanji) => (
+                <button
+                  key={kanji.id}
+                  onClick={() => setSelectedKanji(kanji)}
+                  className={`aspect-square rounded-xl border transition-all duration-200 hover:scale-110 hover:shadow-lg ${
+                    isDark
+                      ? "bg-gray-800 border-gray-700 hover:border-red-600"
+                      : "bg-white border-gray-200 hover:border-red-400"
+                  }`}
+                >
+                  <div className="h-full flex flex-col items-center justify-center p-2">
+                    <div className="text-3xl md:text-4xl font-bold japanese-text mb-1">
+                      {kanji.character}
                     </div>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
+                    {kanji.jlpt_level && (
+                      <div className="text-xs text-red-500 font-medium">
+                        {kanji.jlpt_level}
+                      </div>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Load more button */}
+            {hasNext && (
+              <div className="mt-6 flex justify-center">
+                <button
+                  onClick={() => fetchKanjis({ reset: false })}
+                  disabled={loadingMore}
+                  className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-900 px-6 py-2 rounded-lg"
+                >
+                  {loadingMore ? "Loading..." : "Load more"}
+                </button>
+              </div>
+            )}
+          </>
         )}
 
         {/* Kanji Detail Modal */}
@@ -281,6 +297,8 @@ export default function KanjiPage() {
                   </span>
                 )}
               </div>
+
+              {/* SVGs are not loaded in this page per user request */}
 
               {/* Meanings */}
               <div className="mb-6">
