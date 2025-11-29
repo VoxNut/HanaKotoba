@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
 import { Volume2, VolumeX } from "lucide-react";
+import { useEffect, useState } from "react";
 import audio from "../utils/clickSound";
 
 export default function AudioControl() {

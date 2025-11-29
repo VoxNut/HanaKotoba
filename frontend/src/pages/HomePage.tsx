@@ -1,6 +1,7 @@
 import {
   BookOpen,
   BookOpenCheck,
+  ChartNetwork,
   ClipboardCheck,
   FlowerIcon,
   LayoutGrid,
@@ -68,6 +69,12 @@ export default function HomePage() {
       description:
         "Get personalized mnemonics for every kanji, accurate pitch accent diagrams, and daily recommendations tailored to your level.",
       route: "/dashboard",
+    },
+    {
+      title: "Decompose Kanji",
+      icon: ChartNetwork,
+      description: "Show Kanji information and decomposition in graph form",
+      route: "/kanji-graph",
     },
   ];
 

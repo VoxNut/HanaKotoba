@@ -22,7 +22,7 @@ function App() {
         <Route path="register" element={<RegisterPage />} />
         <Route path="hiragana-katakana" element={<HiraganaKatakanaPage />} />
         <Route path="kanji" element={<KanjiPage />} />
-        <Route path="kanji-graph" element={<KanjiGraphPage />} />
+        <Route path="kanji-graph/:kanji?" element={<KanjiGraphPage />} />
 
         {/* Protected routes */}
         <Route element={<PrivateRoute />}>

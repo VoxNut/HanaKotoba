@@ -7,7 +7,7 @@ Full-stack Japanese language learning platform with React (TypeScript) frontend 
 ## Technology Stack
 
 - **Frontend**: React 18, TypeScript, Vite, TailwindCSS
-- **Backend**: Django 4.2, Django REST Framework, PostgreSQL
+- **Backend**: Django 4.2, Django REST Framework, SQLLite
 - **AI Integration**: OpenAI API, TensorFlow.js for kanji recognition
 - **Deployment**: Docker, Docker Compose
 
