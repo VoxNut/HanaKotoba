@@ -39,7 +39,7 @@ export default function Layout() {
                       to="/dashboard"
                       className={`${
                         isDark
-                          ? "text-gray-300 hover:text-red-400"
+                          ? "text-gray-300 hover:text-primary-400"
                           : "text-gray-700 hover:text-primary-600"
                       }`}
                     >
@@ -49,7 +49,7 @@ export default function Layout() {
                       to="/hiragana-katakana"
                       className={`${
                         isDark
-                          ? "text-gray-300 hover:text-red-400"
+                          ? "text-gray-300 hover:text-primary-400"
                           : "text-gray-700 hover:text-primary-600"
                       }`}
                     >
@@ -59,7 +59,7 @@ export default function Layout() {
                       to="/kanji"
                       className={`${
                         isDark
-                          ? "text-gray-300 hover:text-red-400"
+                          ? "text-gray-300 hover:text-primary-400"
                           : "text-gray-700 hover:text-primary-600"
                       }`}
                     >
@@ -69,7 +69,7 @@ export default function Layout() {
                       to="/vocabulary"
                       className={`${
                         isDark
-                          ? "text-gray-300 hover:text-red-400"
+                          ? "text-gray-300 hover:text-primary-400"
                           : "text-gray-700 hover:text-primary-600"
                       }`}
                     >
@@ -80,7 +80,7 @@ export default function Layout() {
                       to="/grammar"
                       className={`${
                         isDark
-                          ? "text-gray-300 hover:text-red-400"
+                          ? "text-gray-300 hover:text-primary-400"
                           : "text-gray-700 hover:text-primary-600"
                       }`}
                     >
@@ -90,7 +90,7 @@ export default function Layout() {
                       to="/practice"
                       className={`${
                         isDark
-                          ? "text-gray-300 hover:text-red-400"
+                          ? "text-gray-300 hover:text-primary-400"
                           : "text-gray-700 hover:text-primary-600"
                       }`}
                     >
@@ -100,7 +100,7 @@ export default function Layout() {
                       to="/flashcards"
                       className={`${
                         isDark
-                          ? "text-gray-300 hover:text-red-400"
+                          ? "text-gray-300 hover:text-primary-400"
                           : "text-gray-700 hover:text-primary-600"
                       }`}
                     >
@@ -205,7 +205,7 @@ export default function Layout() {
                 <Link
                   to="/vocabulary"
                   className={`${
-                    isDark ? "hover:text-red-400" : "hover:text-primary-600"
+                    isDark ? "hover:text-primary-400" : "hover:text-primary-600"
                   }`}
                 >
                   Vocabulary
@@ -213,7 +213,7 @@ export default function Layout() {
                 <Link
                   to="/kanji"
                   className={`${
-                    isDark ? "hover:text-red-400" : "hover:text-primary-600"
+                    isDark ? "hover:text-primary-400" : "hover:text-primary-600"
                   }`}
                 >
                   Kanji
@@ -221,7 +221,7 @@ export default function Layout() {
                 <Link
                   to="/grammar"
                   className={`${
-                    isDark ? "hover:text-red-400" : "hover:text-primary-600"
+                    isDark ? "hover:text-primary-400" : "hover:text-primary-600"
                   }`}
                 >
                   Grammar
@@ -229,7 +229,7 @@ export default function Layout() {
                 <Link
                   to="/flashcards"
                   className={`${
-                    isDark ? "hover:text-red-400" : "hover:text-primary-600"
+                    isDark ? "hover:text-primary-400" : "hover:text-primary-600"
                   }`}
                 >
                   Flashcards

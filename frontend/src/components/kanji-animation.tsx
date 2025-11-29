@@ -68,9 +68,51 @@ export function KanjiStrokeAnimation({
     });
     const hasClipPaths = svgEl.querySelectorAll("path[clip-path]").length > 0;
     const selector = hasClipPaths ? "path[clip-path]" : "path";
-    const paths = Array.from(
+    // collect paths and dedupe by 'd' attribute (many animCJK svgs have duplicate masks/paths)
+    const rawPaths = Array.from(
       svgEl.querySelectorAll(selector)
     ) as SVGPathElement[];
+    const seenD = new Set<string>();
+    const paths: SVGPathElement[] = [];
+    const maybeOrder = (p: SVGPathElement) => {
+      const candidates = [
+        p.getAttribute("data-order"),
+        p.getAttribute("data-index"),
+        p.getAttribute("data-stroke"),
+        p.getAttribute("data-id"),
+        p.id,
+      ];
+      for (const c of candidates) {
+        if (!c) continue;
+        const match = c.match(/(\d+)/);
+        if (match) return Number(match[1]);
+        const parsed = Number(c);
+        if (!isNaN(parsed)) return parsed;
+      }
+      return undefined;
+    };
+
+    rawPaths.forEach((p) => {
+      try {
+        const d = (p.getAttribute("d") || "").trim();
+        if (!d) return;
+        if (seenD.has(d)) return; // skip duplicates
+        seenD.add(d);
+        paths.push(p);
+      } catch (e) {
+        // fallback: include path
+        paths.push(p);
+      }
+    });
+    // Try to order paths by explicit stroke data attributes if exists
+    const hasOrder = rawPaths.some((p) => maybeOrder(p) !== undefined);
+    if (hasOrder) {
+      paths.sort((a, b) => {
+        const oa = maybeOrder(a) ?? 0;
+        const ob = maybeOrder(b) ?? 0;
+        return oa - ob;
+      });
+    }
     // compute a reasonable stroke width from the svg viewBox (fallback to 8)
     const svgSvg = svgEl as SVGSVGElement;
     let strokeWidth = 8;
@@ -209,13 +251,15 @@ export function KanjiStrokeAnimation({
 
     let raf = 0;
     let last = performance.now();
-    const DURATION_PER_STROKE = 1100; // ms per stroke
+    const DURATION_PER_STROKE = 1500; // ms per stroke (adjusted for smoother pacing)
     const strokes = pathLengthsRef.current?.length ?? (strokeCount || 0);
     const totalDuration = Math.max(1, strokes * DURATION_PER_STROKE);
     const speed = totalLen / totalDuration; // px per ms
 
     const step = (ts: number) => {
-      const dt = Math.max(0, ts - last);
+      // guard against very large dt when tab was hidden or resumed
+      const rawDt = Math.max(0, ts - last);
+      const dt = Math.min(50, rawDt);
       last = ts;
       setDrawProgress((p) => {
         const next = p + dt * speed;

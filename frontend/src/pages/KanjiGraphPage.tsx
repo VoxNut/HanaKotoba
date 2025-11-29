@@ -251,8 +251,8 @@ export default function KanjiGraphPage() {
 
   return (
     <div
-      className={`min-h-screen ${
-        isDark ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
+      className={`min-h-screen bg-transparent ${
+        isDark ? "text-white" : "text-gray-900"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-12 gap-6">
@@ -266,7 +266,7 @@ export default function KanjiGraphPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Type character, reading, or meaning..."
-              className={`w-full px-3 py-2 rounded-md border ${
+              className={`w-full px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary-500 ${
                 isDark
                   ? "bg-gray-800 border-gray-700"
                   : "bg-white border-gray-200"
@@ -284,6 +284,16 @@ export default function KanjiGraphPage() {
                       navigate(`/kanji-graph/${s}`);
                     }}
                     className="w-full text-left px-3 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+                    // use theme primary colors for text to match site
+                    style={{
+                      color:
+                        getComputedStyle(document.body)
+                          .getPropertyValue("--color-primary-600")
+                          ?.trim() ||
+                        (document.documentElement.classList.contains("dark")
+                          ? "var(--color-primary-400)"
+                          : "var(--color-primary-600)"),
+                    }}
                   >
                     {s}
                   </button>
@@ -309,12 +319,14 @@ export default function KanjiGraphPage() {
           <div
             className={`p-4 rounded-lg ${
               isDark ? "bg-gray-800" : "bg-white"
-            } h-full`}
+            } min-h-0 h-full`}
           >
-            <h2 className="text-xl font-bold mb-2">Kanji</h2>
+            <h2 className="text-xl font-bold mb-2 text-primary-600 dark:text-primary-400">
+              Kanji
+            </h2>
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-4 flex items-center justify-center">
-                <div className="text-[5.5rem] leading-none drop-shadow-md">
+                <div className="text-[5.5rem] leading-none drop-shadow-md text-primary-600 dark:text-primary-400">
                   {kanjiInfo?.character ?? kanjiInfo?.id ?? "—"}
                 </div>
               </div>
@@ -325,19 +337,24 @@ export default function KanjiGraphPage() {
                       <p>
                         {kanjiInfo?.jlpt_level && (
                           <span className="mr-3">
-                            JLPT: <strong>{kanjiInfo.jlpt_level}</strong>
+                            JLPT:{" "}
+                            <strong className="text-primary-600 dark:text-primary-400">
+                              {kanjiInfo.jlpt_level}
+                            </strong>
                           </span>
                         )}
                         {kanjiInfo?.taughtIn && (
                           <span>
                             Taught in grade:{" "}
-                            <strong>{kanjiInfo.taughtIn}</strong>
+                            <strong className="text-primary-600 dark:text-primary-400">
+                              {kanjiInfo.taughtIn}
+                            </strong>
                           </span>
                         )}
                       </p>
                       <p>
                         Stroke count:{" "}
-                        <strong>
+                        <strong className="text-primary-600 dark:text-primary-400">
                           {kanjiInfo.stroke_count ??
                             kanjiInfo?.kanjialiveData?.strokeCount ??
                             "n/a"}
@@ -345,7 +362,7 @@ export default function KanjiGraphPage() {
                       </p>
                       <p>
                         Meaning:{" "}
-                        <strong>
+                        <strong className="text-primary-600 dark:text-primary-400">
                           {kanjiInfo.meaning ??
                             kanjiInfo.jishoData?.meaning ??
                             "n/a"}
@@ -353,21 +370,21 @@ export default function KanjiGraphPage() {
                       </p>
                       <p>
                         Kunyomi:{" "}
-                        <strong>
+                        <strong className="text-primary-600 dark:text-primary-400">
                           {kanjiInfo.kun_reading ??
                             (kanjiInfo.jishoData?.kunyomi ?? []).join(", ")}
                         </strong>
                       </p>
                       <p>
                         Onyomi:{" "}
-                        <strong>
+                        <strong className="text-primary-600 dark:text-primary-400">
                           {kanjiInfo.on_reading ??
                             (kanjiInfo.jishoData?.onyomi ?? []).join(", ")}
                         </strong>
                       </p>
                       <p>
                         Composition:{" "}
-                        <strong>
+                        <strong className="text-primary-600 dark:text-primary-400">
                           {(
                             graphData?.noOutLinks?.links
                               ?.filter((l: any) => l.target === kanjiInfo.id)
@@ -388,7 +405,7 @@ export default function KanjiGraphPage() {
             {/* SVG stroke animation preview */}
             <div className="mt-4">
               {strokeSvg ? (
-                <div className="w-full p-2 rounded bg-muted">
+                <div className="w-full p-2 rounded bg-muted text-primary-600 dark:text-primary-400">
                   <KanjiStrokeAnimation
                     svgContent={strokeSvg}
                     strokeCount={
@@ -429,8 +446,12 @@ export default function KanjiGraphPage() {
               isDark ? "bg-gray-800" : "bg-white"
             } h-full`}
           >
-            <h3 className="sr-only">Examples</h3>
-            <Examples kanjiInfo={kanjiInfo} />
+            <h3 className="text-lg font-bold mb-2 text-primary-600">
+              Examples
+            </h3>
+            <div className="h-full overflow-auto pr-2">
+              <Examples kanjiInfo={kanjiInfo} />
+            </div>
           </div>
         </div>
 
@@ -440,7 +461,7 @@ export default function KanjiGraphPage() {
               isDark ? "bg-gray-800" : "bg-white"
             } h-full`}
           >
-            <h3 className="text-lg font-bold mb-2">
+            <h3 className="text-lg font-bold mb-2 text-primary-600">
               Decomposition / Composition Graph
             </h3>
             <div style={{ height: 520 }}>

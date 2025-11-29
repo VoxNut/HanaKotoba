@@ -143,6 +143,12 @@ export const SearchInput = ({
           role="combobox"
           aria-expanded={open}
           className="w-full max-w-80 md:w-[220px] justify-between"
+          style={{
+            color:
+              getComputedStyle(document.body)
+                .getPropertyValue("--color-primary-600")
+                ?.trim() || undefined,
+          }}
         >
           {selectedOption ? `${selectedOption.kanji}` : searchPlaceholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />

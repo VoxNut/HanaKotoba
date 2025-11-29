@@ -25,7 +25,7 @@ export default function AudioControl() {
         {muted ? (
           <VolumeX className="w-5 h-5 text-white" />
         ) : (
-          <Volume2 className="w-5 h-5 text-red-500" />
+          <Volume2 className="w-5 h-5 text-primary-500" />
         )}
       </button>
     </div>

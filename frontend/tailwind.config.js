@@ -1,20 +1,29 @@
 /** @type {import('tailwindcss').Config} */
+function withOpacity(variable) {
+  return ({ opacityValue }) => {
+    if (opacityValue === undefined) {
+      return `rgb(var(${variable}))`;
+    }
+    return `rgb(var(${variable}) / ${opacityValue})`;
+  };
+}
+
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       colors: {
         primary: {
-          50: "#fef2f2",
-          100: "#fee2e2",
-          200: "#fecaca",
-          300: "#fca5a5",
-          400: "#f87171",
-          500: "#ef4444",
-          600: "#dc2626",
-          700: "#b91c1c",
-          800: "#991b1b",
-          900: "#7f1d1d",
+          50: withOpacity("--color-primary-50"),
+          100: withOpacity("--color-primary-100"),
+          200: withOpacity("--color-primary-200"),
+          300: withOpacity("--color-primary-300"),
+          400: withOpacity("--color-primary-400"),
+          500: withOpacity("--color-primary-500"),
+          600: withOpacity("--color-primary-600"),
+          700: withOpacity("--color-primary-700"),
+          800: withOpacity("--color-primary-800"),
+          900: withOpacity("--color-primary-900"),
         },
         // Softer coral-red for CTAs
         coral: {

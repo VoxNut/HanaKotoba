@@ -25,7 +25,7 @@ export default function DashboardPage() {
           >
             Study Streak
           </h3>
-          <p className="text-3xl font-bold text-red-600">0 days</p>
+          <p className="text-3xl font-bold text-primary-600">0 days</p>
         </div>
         <div
           className={`p-6 rounded-lg shadow ${
@@ -39,7 +39,7 @@ export default function DashboardPage() {
           >
             Words Learned
           </h3>
-          <p className="text-3xl font-bold text-red-600">0</p>
+          <p className="text-3xl font-bold text-primary-600">0</p>
         </div>
         <div
           className={`p-6 rounded-lg shadow ${
@@ -53,7 +53,7 @@ export default function DashboardPage() {
           >
             Kanji Mastered
           </h3>
-          <p className="text-3xl font-bold text-red-600">0</p>
+          <p className="text-3xl font-bold text-primary-600">0</p>
         </div>
       </div>
       <div

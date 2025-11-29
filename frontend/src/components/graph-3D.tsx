@@ -34,8 +34,6 @@ const Graph3D = ({
   autoRotate,
   showParticles,
 }: Props) => {
-  // Don't return early before Hooks — keep Hooks stable and guard rendering later once state is initialized
-
   const joyoList = kanjilist.filter((el) => el.g === 1).map((el) => el.k);
   const jinmeiyoList = kanjilist.filter((el) => el.g === 2).map((el) => el.k);
 
@@ -295,13 +293,13 @@ const Graph3D = ({
         let color;
         // if it is he main node
         if (node.id === kanjiInfo.id) {
-          color = "#2B99CF";
+          color = colorPrimary;
         } else if (joyoList?.includes(String(node.id))) {
-          color = "#80c2e2";
+          color = colorPrimaryLight;
         } else if (jinmeiyoList?.includes(String(node.id))) {
-          color = "#d5ebf5";
+          color = colorPrimaryLighter;
         } else {
-          color = "#fff";
+          color = colorForeground;
         }
 
         const ball = new THREE.Mesh(
@@ -318,7 +316,7 @@ const Graph3D = ({
         const sprite = new SpriteText(String(node.id));
         sprite.fontFace =
           "Iowan Old Style, Apple Garamond, Baskerville, Times New Roman, Droid Serif, Times, Source Serif Pro, serif";
-        sprite.color = "#000";
+        sprite.color = colorForeground;
         sprite.textHeight = 10;
         sprite.fontSize = 120;
         sprite.padding = 3;
@@ -345,7 +343,10 @@ const Graph3D = ({
         } else {
           return null;
         }
-        sprite.color = resolvedTheme === "dark" ? "#ffffff" : "#000000";
+        sprite.color = cssVar(
+          "--color-foreground",
+          resolvedTheme === "dark" ? "#ffffff" : "#000000"
+        );
         sprite.textHeight = 6;
         return sprite;
       }}

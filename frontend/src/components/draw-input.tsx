@@ -95,6 +95,12 @@ export const DrawInput: React.FC = () => {
             key={index}
             to={`/kanji-graph/${suggestion}`}
             className={cn(buttonVariants({ variant: "ghost" }), "w-8 h-8")}
+            style={{
+              color:
+                getComputedStyle(document.body)
+                  .getPropertyValue("--color-primary-600")
+                  ?.trim() || undefined,
+            }}
             onClick={eraseKanji}
           >
             {suggestion}

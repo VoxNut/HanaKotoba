@@ -59,7 +59,7 @@ export default function LoginPage() {
         </h2>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="bg-primary-50 border border-primary-200 text-primary-700 px-4 py-3 rounded mb-4">
             {error}
           </div>
         )}
@@ -79,7 +79,7 @@ export default function LoginPage() {
               onChange={(e) => setUsername(e.target.value)}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
                 isDark
-                  ? "bg-gray-700 border-gray-600 text-white focus:ring-red-500"
+                  ? "bg-gray-700 border-gray-600 text-white focus:ring-primary-500"
                   : "bg-white border-gray-300 text-gray-900 focus:ring-primary-500"
               }`}
               required
@@ -100,7 +100,7 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
                 isDark
-                  ? "bg-gray-700 border-gray-600 text-white focus:ring-red-500"
+                  ? "bg-gray-700 border-gray-600 text-white focus:ring-primary-500"
                   : "bg-white border-gray-300 text-gray-900 focus:ring-primary-500"
               }`}
               required
@@ -110,7 +110,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white py-2 rounded-md font-medium"
+            className="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white py-2 rounded-md font-medium"
           >
             {isLoading ? "Logging in..." : "Login"}
           </button>
@@ -124,7 +124,7 @@ export default function LoginPage() {
           Don't have an account?{" "}
           <Link
             to="/register"
-            className="text-red-500 hover:text-red-400 font-medium"
+            className="text-primary-500 hover:text-primary-400 font-medium"
           >
             Sign up
           </Link>

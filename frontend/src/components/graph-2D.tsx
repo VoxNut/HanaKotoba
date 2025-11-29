@@ -95,6 +95,36 @@ const Graph2D: React.FC<Props> = ({
     // paintNode(node);
   };
 
+  // helper to read CSS variable with fallback
+  const cssVar = (name: string, fallback = "") => {
+    try {
+      const v = getComputedStyle(document.body).getPropertyValue(name);
+      const raw = (v || fallback).trim() || fallback;
+      // If the variable is an RGB triple like "239 68 68" or "239, 68, 68",
+      // convert it into a valid css rgb(...) string for canvas/three usage.
+      if (
+        raw &&
+        !raw.startsWith("#") &&
+        !/^rgba?\(/i.test(raw) &&
+        /[0-9]/.test(raw)
+      ) {
+        // normalize commas/spaces
+        const nums = raw.replace(/,/g, " ").trim();
+        if (/^([0-9]+\s+){2}[0-9]+$/.test(nums)) {
+          return `rgb(${nums})`;
+        }
+      }
+      return raw;
+    } catch {
+      return fallback;
+    }
+  };
+
+  const colorPrimary = cssVar("--color-primary-600", "#2B99CF");
+  const colorPrimaryLight = cssVar("--color-primary-300", "#80c2e2");
+  const colorPrimaryLighter = cssVar("--color-primary-100", "#d5ebf5");
+  const colorForeground = cssVar("--color-foreground", "#000000");
+
   const paintNode = (
     node: NodeObject,
     ctx: CanvasRenderingContext2D
@@ -109,13 +139,13 @@ const Graph2D: React.FC<Props> = ({
     let color;
     // if it is he main node
     if (node.id === kanjiInfo.id) {
-      color = "#2B99CF";
+      color = colorPrimary;
     } else if (joyoList?.includes(String(node.id))) {
-      color = "#80c2e2";
+      color = colorPrimaryLight;
     } else if (jinmeiyoList?.includes(String(node.id))) {
-      color = "#d5ebf5";
+      color = colorPrimaryLighter;
     } else {
-      color = "#fff";
+      color = colorForeground;
     }
 
     if (node.id === hoverNode?.id) {
@@ -124,21 +154,60 @@ const Graph2D: React.FC<Props> = ({
 
     const radius = (bckgDimensions[1] / 2) * 1.5;
 
-    ctx.beginPath();
-    node.x &&
-      node.y &&
-      ctx.arc(node.x, node.y, radius * 1.1, 0, 2 * Math.PI, false);
-    ctx.fillStyle = "#000000";
-    ctx.fill();
-
+    // Draw node filled with the primary-derived color (or foreground for unknown)
     ctx.beginPath();
     node.x && node.y && ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
     ctx.fillStyle = color;
     ctx.fill();
 
+    // Stroke with foreground for separation
+    ctx.lineWidth = 0.6;
+    ctx.strokeStyle = cssVar(
+      "--color-foreground",
+      resolvedTheme === "dark" ? "#ffffff" : "#000000"
+    );
+    ctx.stroke();
+
+    // Choose readable label color based on node fill brightness
+    const parseRGB = (c: string) => {
+      try {
+        if (c.startsWith("rgb")) {
+          const nums = c
+            .replace(/rgba?\(|\)|/g, "")
+            .replace(/,/g, " ")
+            .trim();
+          const [r, g, b] = nums.split(/\s+/).map((n) => parseInt(n, 10));
+          return [r || 0, g || 0, b || 0];
+        }
+        if (c.startsWith("#")) {
+          const hex = c.replace("#", "");
+          const bigint = parseInt(
+            hex.length === 3
+              ? hex
+                  .split("")
+                  .map((h) => h + h)
+                  .join("")
+              : hex,
+            16
+          );
+          const r = (bigint >> 16) & 255;
+          const g = (bigint >> 8) & 255;
+          const b = bigint & 255;
+          return [r, g, b];
+        }
+      } catch {
+        // ignore
+      }
+      return [0, 0, 0];
+    };
+
+    const [r, g, b] = parseRGB(String(color));
+    const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+    const labelColor = brightness > 150 ? "#000000" : "#ffffff";
+
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillStyle = "black";
+    ctx.fillStyle = labelColor;
     node.x && node.y && ctx.fillText(label, node.x, node.y);
 
     // node.__bckgDimensions = bckgDimensions; // to re-use in nodePointerAreaPaint
@@ -267,7 +336,10 @@ const Graph2D: React.FC<Props> = ({
             ctx.lineTo(tx, ty);
           }
           ctx.lineWidth = 0.25;
-          ctx.strokeStyle = resolvedTheme === "dark" ? "#ffffff" : "#000000";
+          ctx.strokeStyle = cssVar(
+            "--color-foreground",
+            resolvedTheme === "dark" ? "#ffffff" : "#000000"
+          );
           ctx.stroke();
 
           const label = String(linkText);

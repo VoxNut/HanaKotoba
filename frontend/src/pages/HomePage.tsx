@@ -115,7 +115,7 @@ export default function HomePage() {
                   isDark ? "bg-gray-700" : "bg-pink-100"
                 } rounded-full p-8 flex items-center justify-center`}
               >
-                <FlowerIcon className="w-14 h-14 text-red-500" />
+                <FlowerIcon className="w-14 h-14 text-primary-500" />
               </div>
             </div>
 
@@ -142,7 +142,7 @@ export default function HomePage() {
               {user ? (
                 <button
                   onClick={() => navigate("/dashboard")}
-                  className="bg-red-600 hover:bg-red-700 text-white px-10 py-4 rounded-full text-lg font-medium transition-all transform hover:scale-105 shadow-lg flex items-center gap-2"
+                  className="bg-primary-600 hover:bg-primary-700 text-white px-10 py-4 rounded-full text-lg font-medium transition-all transform hover:scale-105 shadow-lg flex items-center gap-2"
                 >
                   <Target className="w-5 h-5" />
                   Go to Dashboard
@@ -150,7 +150,7 @@ export default function HomePage() {
               ) : (
                 <Link
                   to="/register"
-                  className="bg-red-600 hover:bg-red-700 text-white px-10 py-4 rounded-full text-lg font-medium transition-all transform hover:scale-105 shadow-lg flex items-center gap-2"
+                  className="bg-primary-600 hover:bg-primary-700 text-white px-10 py-4 rounded-full text-lg font-medium transition-all transform hover:scale-105 shadow-lg flex items-center gap-2"
                 >
                   <Target className="w-5 h-5" />
                   Start Learning
@@ -190,12 +190,12 @@ export default function HomePage() {
                 key={index}
                 className={`rounded-2xl p-8 border transition-all duration-300 transform hover:scale-105 hover:shadow-2xl ${
                   isDark
-                    ? "bg-gradient-to-br from-gray-800 to-gray-900 border-red-900/30 hover:border-red-600/50 hover:shadow-red-900/20"
-                    : "bg-white border-gray-200 hover:border-red-300 hover:shadow-red-200/20"
+                    ? "bg-gradient-to-br from-gray-800 to-gray-900 border-primary-900/30 hover:border-primary-600/50 hover:shadow-primary-900/20"
+                    : "bg-white border-gray-200 hover:border-primary-300 hover:shadow-primary-200/20"
                 }`}
               >
                 {/* Icon */}
-                <div className="mb-4 text-red-500">
+                <div className="mb-4 text-primary-500">
                   <IconComponent className="w-14 h-14" />
                 </div>
 
@@ -221,7 +221,7 @@ export default function HomePage() {
                 {user ? (
                   <button
                     onClick={() => navigate(feature.route)}
-                    className="text-red-500 hover:text-red-400 font-medium flex items-center gap-2 group"
+                    className="text-primary-500 hover:text-primary-400 font-medium flex items-center gap-2 group"
                   >
                     Start Learning
                     <span className="transform group-hover:translate-x-1 transition-transform">
@@ -231,7 +231,7 @@ export default function HomePage() {
                 ) : (
                   <Link
                     to="/register"
-                    className="text-red-500 hover:text-red-400 font-medium flex items-center gap-2 group"
+                    className="text-primary-500 hover:text-primary-400 font-medium flex items-center gap-2 group"
                   >
                     Start Learning
                     <span className="transform group-hover:translate-x-1 transition-transform">

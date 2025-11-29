@@ -26,6 +26,25 @@ body {
   scrollbar-width: none; /* Firefox */
 }
 
+/* Site wide CSS variable for primary color (RGB triples) */
+:root {
+  --color-primary-50: 254 242 242; /* #fef2f2 */
+  --color-primary-100: 254 226 226; /* #fee2e2 */
+  --color-primary-200: 254 202 202; /* #fecaca */
+  --color-primary-300: 252 165 165; /* #fca5a5 */
+  --color-primary-400: 248 113 113; /* #f87171 */
+  --color-primary-500: 239 68 68; /* #ef4444 */
+  --color-primary-600: 220 38 38; /* #dc2626 */
+  --color-primary-700: 185 28 28; /* #b91c1c */
+  --color-primary-800: 153 27 27; /* #991b1b */
+  --color-primary-900: 127 29 29; /* #7f1d1d */
+}
+
+/* Optional: dark theme overrides for primary color */
+[data-theme="dark"] {
+  --color-primary-500: 239 68 68; /* keep same by default; modify if needed in the future */
+}
+
 /* Japanese text font */
 .japanese-text {
   font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
