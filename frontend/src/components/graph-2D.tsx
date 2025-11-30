@@ -92,7 +92,12 @@ const Graph2D: React.FC<Props> = ({
 
   const handleNodeHover = (node: NodeObject | null) => {
     setHoverNode(node || null);
-    // paintNode(node);
+    // ensure canvas repaints so hover state updates immediately
+    try {
+      (fgRef.current as any)?.refresh?.();
+    } catch {
+      // ignore if refresh not available
+    }
   };
 
   // helper to read CSS variable with fallback
@@ -149,7 +154,7 @@ const Graph2D: React.FC<Props> = ({
     }
 
     if (node.id === hoverNode?.id) {
-      color = "#2B99CF";
+      color = colorPrimary;
     }
 
     const radius = (bckgDimensions[1] / 2) * 1.5;

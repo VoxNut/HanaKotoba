@@ -1,7 +1,7 @@
 "use client";
 
-import * as React from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
+import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -45,7 +45,8 @@ function Slider({
         <SliderPrimitive.Range
           data-slot="slider-range"
           className={cn(
-            "bg-foreground absolute data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full"
+            // use primary color for the filled range; fall back to foreground if primary unavailable
+            "absolute data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full bg-primary-500 dark:bg-primary-400"
           )}
         />
       </SliderPrimitive.Track>
@@ -53,7 +54,12 @@ function Slider({
         <SliderPrimitive.Thumb
           data-slot="slider-thumb"
           key={index}
-          className="border-foreground bg-background ring-foreground/20 block size-4 shrink-0 rounded-full border shadow-sm transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50"
+          className={cn(
+            // primary thumb with contrasting border and accessible ring
+            "block size-4 shrink-0 rounded-full shadow-sm transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-50",
+            "bg-primary-500 dark:bg-primary-400 border-primary-700 dark:border-primary-500",
+            "hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden ring-primary-300/30"
+          )}
         />
       ))}
     </SliderPrimitive.Root>

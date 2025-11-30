@@ -26,7 +26,6 @@ import {
 } from "@/lib/store";
 
 const Graph2DNoSSR = React.lazy(() => import("./graph-2D"));
-const Graph3DNoSSR = React.lazy(() => import("./graph-3D"));
 
 interface Props {
   kanjiInfo: KanjiInfo | null;
@@ -133,25 +132,6 @@ export const Graphs: React.FC<Props> = ({ kanjiInfo, graphData }) => {
         </Tabs>
       </div>
       <div className="absolute inset-0">
-        {kanjiInfo && style === "3D" && (
-          <React.Suspense fallback={<div />}>
-            <Graph3DNoSSR
-              key={tabValue + random + pathname + (outLinks ? "o" : "i")}
-              kanjiInfo={kanjiInfo}
-              graphData={
-                {
-                  withOutLinks: dedupeGraph(graphData?.withOutLinks),
-                  noOutLinks: dedupeGraph(graphData?.noOutLinks),
-                } as BothGraphData
-              }
-              showOutLinks={outLinks}
-              showParticles={particles}
-              autoRotate={rotate}
-              triggerFocus={tabValue + random}
-              bounds={bounds}
-            />
-          </React.Suspense>
-        )}
         {kanjiInfo && style === "2D" && (
           <React.Suspense fallback={<div />}>
             <Graph2DNoSSR
