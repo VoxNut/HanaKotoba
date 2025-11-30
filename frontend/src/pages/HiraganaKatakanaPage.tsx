@@ -225,7 +225,7 @@ export default function HiraganaKatakanaPage() {
               onClick={() => setSelectedScript("hiragana")}
               className={`px-6 py-2 rounded-md font-medium transition-all ${
                 selectedScript === "hiragana"
-                  ? "bg-red-600 text-white"
+                  ? "bg-primary-600 text-white"
                   : isDark
                   ? "text-gray-300 hover:text-white"
                   : "text-gray-700 hover:text-gray-900"
@@ -237,7 +237,7 @@ export default function HiraganaKatakanaPage() {
               onClick={() => setSelectedScript("katakana")}
               className={`px-6 py-2 rounded-md font-medium transition-all ${
                 selectedScript === "katakana"
-                  ? "bg-red-600 text-white"
+                  ? "bg-primary-600 text-white"
                   : isDark
                   ? "text-gray-300 hover:text-white"
                   : "text-gray-700 hover:text-gray-900"
@@ -252,7 +252,7 @@ export default function HiraganaKatakanaPage() {
             onClick={() => setShowRomaji(!showRomaji)}
             className={`px-6 py-2 rounded-lg font-medium transition-all ${
               showRomaji
-                ? "bg-red-600 text-white"
+                ? "bg-primary-600 text-white"
                 : isDark
                 ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
@@ -269,8 +269,8 @@ export default function HiraganaKatakanaPage() {
               key={index}
               className={`rounded-xl p-4 border transition-all duration-200 hover:scale-110 hover:shadow-lg cursor-pointer ${
                 isDark
-                  ? "bg-gray-800 border-gray-700 hover:border-red-600"
-                  : "bg-white border-gray-200 hover:border-red-400"
+                  ? "bg-gray-800 border-gray-700 hover:border-primary-600"
+                  : "bg-white border-gray-200 hover:border-primary-400"
               }`}
             >
               <div className="text-center">
@@ -297,7 +297,9 @@ export default function HiraganaKatakanaPage() {
         <div className="mt-16">
           <h2
             className={`text-3xl font-bold mb-8 text-center ${
-              selectedScript === "hiragana" ? "text-red-400" : "text-red-400"
+              selectedScript === "hiragana"
+                ? "text-primary-400"
+                : "text-primary-400"
             }`}
           >
             {selectedScript === "hiragana"
@@ -315,8 +317,8 @@ export default function HiraganaKatakanaPage() {
                     key={colIndex}
                     className={`w-20 h-20 md:w-24 md:h-24 rounded-xl flex items-center justify-center transition-all duration-200 border cursor-pointer hover:scale-110 hover:shadow-lg ${
                       isDark
-                        ? "bg-red-600 border-red-700 hover:border-red-500"
-                        : "bg-red-500 border-red-600 hover:border-red-400"
+                        ? "bg-primary-600 border-primary-700 hover:border-primary-500"
+                        : "bg-primary-500 border-primary-600 hover:border-primary-400"
                     }`}
                   >
                     <div className="text-center">
@@ -342,7 +344,9 @@ export default function HiraganaKatakanaPage() {
         <div className="mt-16">
           <h2
             className={`text-3xl font-bold mb-8 text-center ${
-              selectedScript === "hiragana" ? "text-red-400" : "text-red-400"
+              selectedScript === "hiragana"
+                ? "text-primary-400"
+                : "text-primary-400"
             }`}
           >
             {selectedScript === "hiragana"
@@ -360,8 +364,8 @@ export default function HiraganaKatakanaPage() {
                     key={colIndex}
                     className={`w-20 h-20 md:w-24 md:h-24 rounded-xl flex items-center justify-center transition-all duration-200 border cursor-pointer hover:scale-110 hover:shadow-lg ${
                       isDark
-                        ? "bg-red-600 border-red-700 hover:border-red-500"
-                        : "bg-red-500 border-red-600 hover:border-red-400"
+                        ? "bg-primary-600 border-primary-700 hover:border-primary-500"
+                        : "bg-primary-500 border-primary-600 hover:border-primary-400"
                     }`}
                   >
                     <div className="text-center">

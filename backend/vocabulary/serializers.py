@@ -8,6 +8,16 @@ class KanjiSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class KanjiPreviewSerializer(serializers.ModelSerializer):
+    """Lightweight serializer for list pages (excludes heavy svg_data and large arrays)."""
+    class Meta:
+        model = Kanji
+        fields = [
+            'id', 'character', 'meaning', 'kun_reading', 'on_reading',
+            'jlpt_level', 'stroke_count', 'radical', 'frequency_rank'
+        ]
+
+
 class VocabularySerializer(serializers.ModelSerializer):
     related_kanji = KanjiSerializer(many=True, read_only=True)
 

@@ -6,6 +6,7 @@ import FlashcardsPage from "./pages/FlashcardsPage";
 import GrammarPage from "./pages/GrammarPage";
 import HiraganaKatakanaPage from "./pages/HiraganaKatakanaPage";
 import HomePage from "./pages/HomePage";
+import KanjiGraphPage from "./pages/KanjiGraphPage";
 import KanjiPage from "./pages/KanjiPage";
 import LoginPage from "./pages/LoginPage";
 import PracticePage from "./pages/PracticePage";
@@ -21,6 +22,7 @@ function App() {
         <Route path="register" element={<RegisterPage />} />
         <Route path="hiragana-katakana" element={<HiraganaKatakanaPage />} />
         <Route path="kanji" element={<KanjiPage />} />
+        <Route path="kanji-graph/:kanji?" element={<KanjiGraphPage />} />
 
         {/* Protected routes */}
         <Route element={<PrivateRoute />}>

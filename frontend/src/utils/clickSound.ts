@@ -1,19 +1,3 @@
-// Utility for preloading and playing short click sounds.
-// Usage:
-//  - Copy your audio files into `frontend/public/sounds/` (see instructions below)
-//  - In App.tsx or top-level, call preloadSounds(['Keyboard_1','Keyboard_2',...])
-//  - Call playSound('Keyboard_1') on button click
-
-/*
-  Web Audio based sound utility with preloading and a low-latency playback path.
-
-  Features:
-  - Preload and decode audio files into AudioBuffer
-  - playSound(name): plays a decoded buffer with low latency
-  - playRandom(names): helper to play a random sound from a list
-  - Master volume and mute controls
-  - resumeAudioContext(): call on first user gesture if needed
-  */
 
 const DEFAULT_EXT = ".mp3";
 

@@ -1,0 +1,60 @@
+{
+  "id": "堕",
+  "kanjialiveData": null,
+  "jishoData": {
+    "query": "堕",
+    "found": true,
+    "taughtIn": "junior high",
+    "jlptLevel": "N1",
+    "newspaperFrequencyRank": "2087",
+    "strokeCount": 12,
+    "meaning": "degenerate, descend to, lapse into",
+    "kunyomi": [
+      "お.ちる",
+      "くず.す",
+      "くず.れる"
+    ],
+    "onyomi": [
+      "ダ"
+    ],
+    "onyomiExamples": [
+      {
+        "example": "堕落",
+        "reading": "ダラク",
+        "meaning": "depravity, corruption, degradation"
+      },
+      {
+        "example": "堕胎",
+        "reading": "ダタイ",
+        "meaning": "abortion, feticide"
+      },
+      {
+        "example": "落堕",
+        "reading": "ラクダ",
+        "meaning": "marrying (of a monk), returning to secular life (of a monk)"
+      }
+    ],
+    "kunyomiExamples": [
+      {
+        "example": "堕ちる",
+        "reading": "おちる",
+        "meaning": "to decline (of morals, character, etc.), to become vulgar (e.g. of a conversation), to stoop (to), to sink (so low), to be ruined, to go under, to fall (into hell)"
+      }
+    ],
+    "radical": {
+      "symbol": "土",
+      "meaning": "earth"
+    },
+    "parts": [
+      "ノ",
+      "一",
+      "土",
+      "月",
+      "阡"
+    ],
+    "strokeOrderDiagramUri": "http://classic.jisho.org/static/images/stroke_diagrams/22549_frames.png",
+    "strokeOrderSvgUri": "https://d1w6u4xc3l95km.cloudfront.net/kanji-2015-03/05815.svg",
+    "strokeOrderGifUri": "https://raw.githubusercontent.com/mistval/kanji_images/master/gifs/5815.gif",
+    "uri": "https://jisho.org/search/%E5%A0%95%23kanji"
+  }
+}

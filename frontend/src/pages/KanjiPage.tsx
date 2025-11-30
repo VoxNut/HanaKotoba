@@ -135,7 +135,7 @@ export default function KanjiPage() {
                 isDark
                   ? "bg-gray-800 border-gray-700 text-white placeholder-gray-400"
                   : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-              } focus:outline-none focus:ring-2 focus:ring-red-500`}
+              } focus:outline-none focus:ring-2 focus:ring-primary-500`}
             />
           </div>
 
@@ -157,7 +157,7 @@ export default function KanjiPage() {
                 }
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   selectedJlpt === level
-                    ? "bg-red-600 text-white"
+                    ? "bg-primary-500 text-white"
                     : isDark
                     ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
                     : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
@@ -191,7 +191,7 @@ export default function KanjiPage() {
         {/* Kanji Grid */}
         {loading ? (
           <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
             <p className={`mt-4 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
               Loading kanji...
             </p>
@@ -200,7 +200,7 @@ export default function KanjiPage() {
           <div className="text-center py-12">
             <div
               className={`text-xl mb-4 ${
-                isDark ? "text-red-400" : "text-red-600"
+                isDark ? "text-primary-400" : "text-primary-600"
               }`}
             >
               ⚠️ Error Loading Kanji
@@ -210,7 +210,7 @@ export default function KanjiPage() {
             </p>
             <button
               onClick={fetchKanjis}
-              className="mt-4 bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-all"
+              className="mt-4 bg-primary-500 hover:bg-primary-700 text-white px-6 py-2 rounded-lg transition-all"
             >
               Try Again
             </button>
@@ -231,8 +231,8 @@ export default function KanjiPage() {
                 onClick={() => setSelectedKanji(kanji)}
                 className={`aspect-square rounded-xl border transition-all duration-200 hover:scale-110 hover:shadow-lg ${
                   isDark
-                    ? "bg-gray-800 border-gray-700 hover:border-red-600"
-                    : "bg-white border-gray-200 hover:border-red-400"
+                    ? "bg-gray-800 border-gray-700 hover:border-primary-600"
+                    : "bg-white border-gray-200 hover:border-primary-400"
                 }`}
               >
                 <div className="h-full flex flex-col items-center justify-center p-2">
@@ -240,7 +240,7 @@ export default function KanjiPage() {
                     {kanji.character}
                   </div>
                   {kanji.jlpt_level && (
-                    <div className="text-xs text-red-500 font-medium">
+                    <div className="text-xs text-primary-500 font-medium">
                       {kanji.jlpt_level}
                     </div>
                   )}
@@ -276,7 +276,7 @@ export default function KanjiPage() {
                   {selectedKanji.character}
                 </div>
                 {selectedKanji.jlpt_level && (
-                  <span className="inline-block bg-red-600 text-white px-4 py-1 rounded-full text-sm font-medium">
+                  <span className="inline-block bg-primary-500 text-white px-4 py-1 rounded-full text-sm font-medium">
                     {selectedKanji.jlpt_level}
                   </span>
                 )}
@@ -398,7 +398,7 @@ export default function KanjiPage() {
 
               {/* Action Buttons */}
               <div className="flex gap-3">
-                <button className="flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition-all">
+                <button className="flex-1 bg-primary-500 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-all">
                   Practice Writing
                 </button>
                 <button

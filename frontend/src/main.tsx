@@ -1,7 +1,12 @@
 import React from "react";
+// Ensure A-Frame is loaded globally before any components/scripts that expect `AFRAME`.
+// Some third-party components (e.g. aframe-forcegraph-component) assume a global AFRAME
+// and may throw `AFRAME is not defined` if it's not present. Importing here guarantees
+// the global is available early during app bootstrap.
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import "aframe";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import App from "./App.tsx";
 import "./index.css";
 import audio from "./utils/clickSound";

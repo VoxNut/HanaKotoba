@@ -21,6 +21,14 @@ class Kanji(models.Model):
     frequency_rank = models.IntegerField(null=True, blank=True)
     examples = models.JSONField(
         default=list, blank=True)  # List of example words
+    # Store raw SVG XML content for embedding
+    svg_data = models.TextField(blank=True, help_text="Raw SVG content (SVG XML) for this Kanji")
+    # Optional FileField left for forward compatibility; we will not write files to MEDIA_ROOT by default
+    svg_file = models.FileField(upload_to='kanji_svgs/', null=True, blank=True, help_text="Optional uploaded SVG file for this Kanji")
+    # Composition stores a decomposition of the kanji into components.
+    # Expected format: list of component identifiers or objects, e.g.
+    # ['木', '本'] or [{"component":"木","type":"radical"}, ...]
+    composition = models.JSONField(default=list, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
