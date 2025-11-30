@@ -3,8 +3,8 @@
 import * as React from "react";
 
 import kanjilist from "@/../data/kanjilist.json";
+import { useThemeStore } from "@/store/themeStore";
 import type { BothGraphData, KanjiInfo } from "@/types/kanji";
-import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import ForceGraph2D, {
   ForceGraphMethods,
@@ -37,7 +37,7 @@ const Graph2D: React.FC<Props> = ({
   const joyoList = kanjilist.filter((el) => el.g === 1).map((el) => el.k);
   const jinmeiyoList = kanjilist.filter((el) => el.g === 2).map((el) => el.k);
 
-  const { resolvedTheme } = useTheme();
+  const isDark = useThemeStore((s) => s.isDark);
 
   const fgRef: React.MutableRefObject<ForceGraphMethods | undefined> =
     React.useRef(undefined);
@@ -169,7 +169,7 @@ const Graph2D: React.FC<Props> = ({
     ctx.lineWidth = 0.6;
     ctx.strokeStyle = cssVar(
       "--color-foreground",
-      resolvedTheme === "dark" ? "#ffffff" : "#000000"
+      isDark ? "#ffffff" : "#000000"
     );
     ctx.stroke();
 
@@ -214,8 +214,6 @@ const Graph2D: React.FC<Props> = ({
     ctx.textBaseline = "middle";
     ctx.fillStyle = labelColor;
     node.x && node.y && ctx.fillText(label, node.x, node.y);
-
-    // node.__bckgDimensions = bckgDimensions; // to re-use in nodePointerAreaPaint
   };
 
   // find same onyomi
@@ -278,7 +276,7 @@ const Graph2D: React.FC<Props> = ({
       }}
       onNodeHover={(node) => handleNodeHover(node)}
       linkColor={() =>
-        getComputedStyle(document?.body)?.getPropertyValue("--color-foreground")
+        cssVar("--color-foreground", isDark ? "#ffffff" : "#000000")
       }
       linkCanvasObject={(link: LinkObject, ctx: CanvasRenderingContext2D) => {
         if (
@@ -343,7 +341,7 @@ const Graph2D: React.FC<Props> = ({
           ctx.lineWidth = 0.25;
           ctx.strokeStyle = cssVar(
             "--color-foreground",
-            resolvedTheme === "dark" ? "#ffffff" : "#000000"
+            isDark ? "#ffffff" : "#000000"
           );
           ctx.stroke();
 
@@ -355,14 +353,17 @@ const Graph2D: React.FC<Props> = ({
           x && y && ctx.translate(x, y);
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
-          ctx.fillStyle = resolvedTheme === "dark" ? "#ffffff" : "#000000";
+          ctx.fillStyle = cssVar(
+            "--color-foreground",
+            isDark ? "#ffffff" : "#000000"
+          );
           ctx.fillText(label, 0, 0);
           ctx.restore();
         }
       }}
       linkDirectionalArrowLength={4}
       linkDirectionalArrowColor={() =>
-        resolvedTheme === "dark" ? "#ffffff" : "#000000"
+        cssVar("--color-foreground", isDark ? "#ffffff" : "#000000")
       }
       linkDirectionalArrowRelPos={({ source, target }) => {
         if (
@@ -387,7 +388,7 @@ const Graph2D: React.FC<Props> = ({
       linkDirectionalParticleSpeed={0.004}
       linkDirectionalParticleWidth={() => (showParticles ? 2 : 0)}
       linkDirectionalParticleColor={() =>
-        resolvedTheme === "dark" ? "#ffffff" : "#000000"
+        cssVar("--color-primary-600", "#2B99CF")
       }
     />
   );

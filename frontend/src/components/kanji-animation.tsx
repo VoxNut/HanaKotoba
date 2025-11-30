@@ -42,7 +42,6 @@ export function KanjiStrokeAnimation({
   const [drawProgress, setDrawProgress] = React.useState(0);
   const [isUserSeeking, setIsUserSeeking] = React.useState(false);
   const totalLength = SVG_STROKE_LENGTH * (strokeCount || 0);
-  const [svgInjected, setSvgInjected] = React.useState(false);
   const svgPathsRef = React.useRef<SVGPathElement[] | null>(null);
   const pathLengthsRef = React.useRef<number[] | null>(null);
 
@@ -60,7 +59,6 @@ export function KanjiStrokeAnimation({
     if (!svgContainerRef.current) return;
     // inject new svg content whenever modifiedSvgContent changes
     svgContainerRef.current.innerHTML = modifiedSvgContent;
-    setSvgInjected(true);
     // clear any cached refs so re-calculation runs
     svgPathsRef.current = null;
     pathLengthsRef.current = null;

@@ -9,7 +9,11 @@ import {
   CommandItem,
   CommandList,
 } from "./ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 
 import searchlist from "@/../data/searchlist.json";
 import { useNavigate } from "react-router-dom";
@@ -36,6 +40,7 @@ interface VirtualizedCommandProps {
   placeholder: string;
   selectedOption: SearchOption | null;
   onSelectOption?: (option: SearchOption) => void;
+  open?: boolean;
 }
 
 const VirtualizedCommand = ({
@@ -43,6 +48,7 @@ const VirtualizedCommand = ({
   options,
   placeholder,
   onSelectOption,
+  open,
 }: VirtualizedCommandProps) => {
   const [filteredOptions, setFilteredOptions] =
     React.useState<SearchOption[]>(options);
@@ -56,6 +62,17 @@ const VirtualizedCommand = ({
           option.meaning.toLowerCase().includes(search.toLowerCase())
       )
     );
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    // find the first item entry in the flattened options
+    const first = flattenedOptions.find((d) => d.type === "item");
+    const value = first?.value;
+    if (value) {
+      onSelectOption?.(value);
+    }
   };
 
   const flattenedOptions = React.useMemo(() => {
@@ -87,7 +104,12 @@ const VirtualizedCommand = ({
 
   return (
     <Command shouldFilter={false}>
-      <CommandInput onValueChange={handleSearch} placeholder={placeholder} />
+      <CommandInput
+        onValueChange={handleSearch}
+        placeholder={placeholder}
+        autoFocus={open}
+        onKeyDown={handleKeyDown}
+      />
       <CommandList style={{ height, overflow: "auto" }}>
         {flattenedOptions.length === 0 ? (
           <CommandEmpty>No results found.</CommandEmpty>
@@ -136,8 +158,8 @@ export const SearchInput = ({
     React.useState<SearchOption | null>(null);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
+      <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
           role="combobox"
@@ -153,20 +175,21 @@ export const SearchInput = ({
           {selectedOption ? `${selectedOption.kanji}` : searchPlaceholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
-      </PopoverTrigger>
-      <PopoverContent className="p-0 w-full max-w-80 md:w-[220px]">
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="p-0 w-full max-w-80 md:w-[220px]">
         <VirtualizedCommand
           height={"215px"}
           options={OPTIONS}
           placeholder={searchPlaceholder}
           selectedOption={selectedOption}
+          open={open}
           onSelectOption={(currentValue) => {
             setSelectedOption(currentValue);
             setOpen(false);
             navigate(`/kanji-graph/${currentValue.kanji}`);
           }}
         />
-      </PopoverContent>
-    </Popover>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
