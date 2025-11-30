@@ -19,81 +19,92 @@ interface Kanji {
 export default function KanjiPage() {
   const isDark = useThemeStore((state) => state.isDark);
   const [kanjis, setKanjis] = useState<Kanji[]>([]);
-  const [filteredKanjis, setFilteredKanjis] = useState<Kanji[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedJlpt, setSelectedJlpt] = useState<string | null>(null);
   const [selectedKanji, setSelectedKanji] = useState<Kanji | null>(null);
 
-  useEffect(() => {
-    fetchKanjis();
-  }, []);
+  // Pagination state
+  const [page, setPage] = useState<number>(1);
+  const [pageSize] = useState<number>(50); // matches backend default page_size
+  const [totalCount, setTotalCount] = useState<number | null>(null);
+  // Background fetch indicator (used when we already have results and are updating)
+  const [fetching, setFetching] = useState<boolean>(false);
 
-  const fetchKanjis = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  // Stable fetch function that accepts filters explicitly to keep hook deps predictable
+  const fetchKanjis = useCallback(
+    async (
+      pageToLoad: number = 1,
+      jlptLevel?: string | null,
+      search?: string
+    ) => {
+      // If we have no kanji yet and are loading the first page, show the large loader.
+      const isInitialLoad = kanjis.length === 0 && pageToLoad === 1;
+      try {
+        if (isInitialLoad) {
+          setLoading(true);
+        } else {
+          setFetching(true);
+        }
+        setError(null);
+        // Build query params for server-side filtering/pagination
+        const params: Record<string, string | number> = {
+          page: pageToLoad,
+          page_size: pageSize,
+        };
 
-      // Fetch all kanji (handle pagination)
-      let allKanjis: Kanji[] = [];
-      let nextUrl: string | null = "/vocabulary/kanji/";
+        if (jlptLevel) {
+          params.jlpt_level = jlptLevel;
+        }
 
-      while (nextUrl) {
-        const response: { data: { results?: Kanji[]; next?: string | null } } =
-          await api.get(nextUrl);
-        const results = response.data.results || [];
-        allKanjis = [...allKanjis, ...results];
+        if (search && search.trim().length > 0) {
+          // DRF SearchFilter expects `search` query param by default
+          params.search = search.trim();
+        }
 
-        // Get next page URL (remove the base URL part if present)
-        nextUrl = response.data.next || null;
-        if (nextUrl) {
-          nextUrl = nextUrl
-            .replace(/^https?:\/\/[^/]+/, "")
-            .replace("/api", "");
+        const resp = await api.get(`/vocabulary/kanji/`, { params });
+
+        const results: Kanji[] = resp.data.results || [];
+        setKanjis(results);
+        setPage(pageToLoad);
+        setTotalCount(
+          typeof resp.data.count === "number" ? resp.data.count : null
+        );
+      } catch (err: unknown) {
+        console.error("Error fetching kanji:", err);
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to load kanji";
+        setError(errorMessage);
+      } finally {
+        if (isInitialLoad) {
+          setLoading(false);
+        } else {
+          setFetching(false);
         }
       }
+    },
+    [pageSize, kanjis.length]
+  );
 
-      console.log(`Loaded ${allKanjis.length} kanji`);
-      setKanjis(allKanjis);
-    } catch (error: unknown) {
-      console.error("Error fetching kanji:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to load kanji";
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filterKanjis = useCallback(() => {
-    let filtered = kanjis;
-
-    // Filter by JLPT level
-    if (selectedJlpt) {
-      filtered = filtered.filter((k) => k.jlpt_level === selectedJlpt);
-    }
-
-    // Filter by search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (k) =>
-          k.character.includes(query) ||
-          k.meaning.toLowerCase().includes(query) ||
-          k.kun_reading.toLowerCase().includes(query) ||
-          k.on_reading.toLowerCase().includes(query)
-      );
-    }
-
-    setFilteredKanjis(filtered);
-  }, [kanjis, selectedJlpt, searchQuery]);
-
+  // When JLPT filter changes, ask server for page 1 of filtered results
   useEffect(() => {
-    filterKanjis();
-  }, [filterKanjis]);
+    fetchKanjis(1, selectedJlpt, searchQuery);
+  }, [selectedJlpt, searchQuery, fetchKanjis]);
+
+  // Debounced search: when searchQuery changes, fetch page 1 after a short delay
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchKanjis(1, selectedJlpt, searchQuery);
+    }, 350);
+    return () => clearTimeout(t);
+  }, [searchQuery, selectedJlpt, fetchKanjis]);
 
   const jlptLevels = ["N5", "N4", "N3", "N2", "N1"];
+
+  // Pagination helpers
+  const canPrev = page > 1;
+  const canNext = totalCount === null ? true : page * pageSize < totalCount;
 
   return (
     <div
@@ -180,11 +191,52 @@ export default function KanjiPage() {
             )}
           </div>
 
-          {/* Results Count */}
-          <div
-            className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}
-          >
-            Showing {filteredKanjis.length} of {kanjis.length} kanji
+          {/* Results Count + Pagination Controls */}
+          <div className="flex items-center justify-between">
+            <div
+              className={`text-sm ${
+                isDark ? "text-gray-400" : "text-gray-600"
+              } flex items-center gap-2`}
+            >
+              <span>
+                Showing {kanjis.length} of {totalCount ?? "?"} kanji (page{" "}
+                {page})
+              </span>
+              {fetching && (
+                <div
+                  className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-500"
+                  aria-hidden="true"
+                ></div>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() =>
+                  canPrev && fetchKanjis(page - 1, selectedJlpt, searchQuery)
+                }
+                disabled={!canPrev}
+                className={`px-3 py-1 rounded ${
+                  canPrev
+                    ? "bg-primary-500 text-white"
+                    : "bg-gray-200 text-gray-400"
+                }`}
+              >
+                Prev
+              </button>
+              <button
+                onClick={() =>
+                  canNext && fetchKanjis(page + 1, selectedJlpt, searchQuery)
+                }
+                disabled={!canNext}
+                className={`px-3 py-1 rounded ${
+                  canNext
+                    ? "bg-primary-500 text-white"
+                    : "bg-gray-200 text-gray-400"
+                }`}
+              >
+                Next
+              </button>
+            </div>
           </div>
         </div>
 
@@ -209,13 +261,13 @@ export default function KanjiPage() {
               {error}
             </p>
             <button
-              onClick={fetchKanjis}
+              onClick={() => fetchKanjis(page, selectedJlpt, searchQuery)}
               className="mt-4 bg-primary-500 hover:bg-primary-700 text-white px-6 py-2 rounded-lg transition-all"
             >
               Try Again
             </button>
           </div>
-        ) : filteredKanjis.length === 0 ? (
+        ) : kanjis.length === 0 ? (
           <div
             className={`text-center py-12 ${
               isDark ? "text-gray-400" : "text-gray-600"
@@ -225,7 +277,7 @@ export default function KanjiPage() {
           </div>
         ) : (
           <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
-            {filteredKanjis.map((kanji) => (
+            {kanjis.map((kanji) => (
               <button
                 key={kanji.id}
                 onClick={() => setSelectedKanji(kanji)}
