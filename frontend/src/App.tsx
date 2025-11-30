@@ -20,9 +20,6 @@ function App() {
         <Route index element={<HomePage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
-        <Route path="hiragana-katakana" element={<HiraganaKatakanaPage />} />
-        <Route path="kanji" element={<KanjiPage />} />
-        <Route path="kanji-graph/:kanji?" element={<KanjiGraphPage />} />
 
         {/* Protected routes */}
         <Route element={<PrivateRoute />}>
@@ -31,6 +28,9 @@ function App() {
           <Route path="grammar" element={<GrammarPage />} />
           <Route path="practice" element={<PracticePage />} />
           <Route path="flashcards" element={<FlashcardsPage />} />
+          <Route path="kanji-graph/:kanji?" element={<KanjiGraphPage />} />
+          <Route path="hiragana-katakana" element={<HiraganaKatakanaPage />} />
+          <Route path="kanji" element={<KanjiPage />} />
         </Route>
       </Route>
     </Routes>
