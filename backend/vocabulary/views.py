@@ -232,9 +232,42 @@ class VocabularyViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend,
                        filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['jlpt_level', 'part_of_speech']
+    filterset_fields = ['jlpt_level']
     search_fields = ['word', 'reading', 'meaning']
     ordering_fields = ['frequency_rank', 'created_at']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        pos_category = self.request.query_params.get('part_of_speech', None)
+        
+        if pos_category:
+            # Map categories to their variations
+            pos_mappings = {
+                'Noun': ['Noun', 'Pronoun', 'demonstrative pronoun', 'interrogative pronoun', 'temporal pronoun', 'no-adjective', 'adverbial noun'],
+                'Verb': ['Verb', 'Godan verb', 'Ichidan verb', 'Suru verb', 'Kuru verb', 'Transitive verb', 'Intransitive verb', 'auxiliary verb'],
+                'Adjective': ['Adjective', 'I-adjective', 'Na-adjective', 'No-adjective', 'demonstrative adjective', 'pre-noun adjectival'],
+                'Adverb': ['Adverb', 'adverb taking the particle to', 'temporal adverb'],
+                'Expression': ['Expression', 'Expressions'],
+                'Counter': ['Counter'],
+                'Pronoun': ['Pronoun', 'demonstrative pronoun', 'interrogative pronoun', 'temporal pronoun'],
+                'Prefix': ['Prefix'],
+                'Suffix': ['Suffix'],
+                'Conjunction': ['Conjunction'],
+                'Interjection': ['Interjection'],
+                'Particle': ['Particle'],
+            }
+            
+            # Get the variations for the selected category
+            variations = pos_mappings.get(pos_category, [pos_category])
+            
+            # Filter using case-insensitive contains for any of the variations
+            from django.db.models import Q
+            query = Q()
+            for variation in variations:
+                query |= Q(part_of_speech__icontains=variation)
+            queryset = queryset.filter(query)
+        
+        return queryset
 
 
 class KanjiMnemonicViewSet(viewsets.ModelViewSet):
