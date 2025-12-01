@@ -1,7 +1,8 @@
-import { BookmarkPlus, Search, Volume2 } from "lucide-react";
+import { PlusCircle, Search, Volume2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import { useThemeStore } from "../store/themeStore";
+import { useToastStore } from "../store/toastStore";
 
 interface Vocabulary {
   id: number;
@@ -17,6 +18,7 @@ interface Vocabulary {
 
 export default function VocabularyPage() {
   const isDark = useThemeStore((state) => state.isDark);
+  const addToast = useToastStore((state) => state.addToast);
   const [vocabulary, setVocabulary] = useState<Vocabulary[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -88,12 +90,30 @@ export default function VocabularyPage() {
 
   const toggleSaved = async (wordId: number) => {
     try {
-      await api.post(`/vocabulary/words/${wordId}/toggle_saved/`);
+      // Add to flashcards
+      const response = await api.post("/srs/cards/add_vocabulary/", {
+        vocabulary_id: wordId,
+      });
+
+      if (response.status === 201) {
+        addToast("Added to flashcards!", "success");
+      } else if (response.status === 200) {
+        addToast("Already in flashcards!", "info");
+      }
+
       setVocabulary((prev) =>
-        prev.map((w) => (w.id === wordId ? { ...w, is_saved: !w.is_saved } : w))
+        prev.map((w) => (w.id === wordId ? { ...w, is_saved: true } : w))
       );
-    } catch (err) {
-      console.error("Error toggling saved:", err);
+    } catch (err: any) {
+      if (err.response?.status === 200) {
+        addToast("Already in flashcards!", "info");
+        setVocabulary((prev) =>
+          prev.map((w) => (w.id === wordId ? { ...w, is_saved: true } : w))
+        );
+      } else {
+        console.error("Error adding to flashcards:", err);
+        addToast("Failed to add to flashcards", "error");
+      }
     }
   };
 
@@ -238,14 +258,19 @@ export default function VocabularyPage() {
                     : "bg-gradient-to-br from-white to-gray-50 border-gray-200"
                 }`}
               >
-                {/* Bookmark Icon */}
+                {/* Add to Flashcards Button */}
                 <button
                   onClick={() => toggleSaved(word.id)}
-                  className="absolute top-4 right-4 text-gray-400 hover:text-primary-500 transition-colors"
+                  className={`absolute top-4 right-4 transition-colors ${
+                    word.is_saved
+                      ? "text-primary-500"
+                      : "text-gray-400 hover:text-primary-500"
+                  }`}
+                  title="Add to Flashcards"
                 >
-                  <BookmarkPlus
+                  <PlusCircle
                     className={`w-5 h-5 ${
-                      word.is_saved ? "fill-primary-500 text-primary-500" : ""
+                      word.is_saved ? "fill-primary-500" : ""
                     }`}
                   />
                 </button>

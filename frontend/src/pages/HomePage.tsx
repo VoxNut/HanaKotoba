@@ -141,11 +141,11 @@ export default function HomePage() {
             <div className="flex justify-center">
               {user ? (
                 <button
-                  onClick={() => navigate("/dashboard")}
+                  onClick={() => navigate("/flashcards")}
                   className="bg-primary-600 hover:bg-primary-700 text-white px-10 py-4 rounded-full text-lg font-medium transition-all transform hover:scale-105 shadow-lg flex items-center gap-2"
                 >
                   <Target className="w-5 h-5" />
-                  Go to Dashboard
+                  Start Learning
                 </button>
               ) : (
                 <Link

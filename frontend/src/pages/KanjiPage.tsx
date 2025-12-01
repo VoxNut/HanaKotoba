@@ -34,6 +34,7 @@ export default function KanjiPage() {
   const [addingToFlashcards, setAddingToFlashcards] = useState(false);
   const [addedToFlashcards, setAddedToFlashcards] = useState(false);
   const [flashcardError, setFlashcardError] = useState<string | null>(null);
+  const [isAlreadyInDeck, setIsAlreadyInDeck] = useState(false);
 
   // Pagination state
   const [page, setPage] = useState<number>(1);
@@ -49,8 +50,8 @@ export default function KanjiPage() {
       jlptLevel?: string | null,
       search?: string
     ) => {
-      // If we have no kanji yet and are loading the first page, show the large loader.
-      const isInitialLoad = kanjis.length === 0 && pageToLoad === 1;
+      // Treat loading the first page as the initial load (show large loader)
+      const isInitialLoad = pageToLoad === 1;
       try {
         if (isInitialLoad) {
           setLoading(true);
@@ -94,21 +95,22 @@ export default function KanjiPage() {
         }
       }
     },
-    [pageSize, kanjis.length]
+    [pageSize]
   );
 
   // When JLPT filter changes, ask server for page 1 of filtered results
   useEffect(() => {
     fetchKanjis(1, selectedJlpt, searchQuery);
-  }, [selectedJlpt, searchQuery, fetchKanjis]);
+  }, [selectedJlpt, fetchKanjis]);
 
   // Debounced search: when searchQuery changes, fetch page 1 after a short delay
   useEffect(() => {
     const t = setTimeout(() => {
+      // Use the current selected JLPT level when applying the search
       fetchKanjis(1, selectedJlpt, searchQuery);
     }, 350);
     return () => clearTimeout(t);
-  }, [searchQuery, selectedJlpt, fetchKanjis]);
+  }, [searchQuery, fetchKanjis]);
 
   const jlptLevels = ["N5", "N4", "N3", "N2", "N1"];
 
@@ -128,6 +130,18 @@ export default function KanjiPage() {
     } catch (err) {
       // No existing mnemonic, that's okay
       console.log("No existing mnemonic found");
+    }
+  };
+
+  // Check if kanji is already in flashcard deck
+  const checkIfInDeck = async (kanjiId: number) => {
+    try {
+      const response = await api.get(`/srs/cards/check_kanji/${kanjiId}/`);
+      setIsAlreadyInDeck(response.data.exists || false);
+    } catch (err) {
+      // If endpoint doesn't exist or error, assume not in deck
+      console.log("Error checking deck status:", err);
+      setIsAlreadyInDeck(false);
     }
   };
 
@@ -188,6 +202,7 @@ export default function KanjiPage() {
     setGeneratingMnemonic(false);
     setAddedToFlashcards(false);
     setFlashcardError(null);
+    setIsAlreadyInDeck(false);
   };
 
   // Render mnemonic with bold text for **word**
@@ -383,6 +398,7 @@ export default function KanjiPage() {
                 onClick={() => {
                   setSelectedKanji(kanji);
                   fetchExistingMnemonic(kanji.id);
+                  checkIfInDeck(kanji.id);
                 }}
                 className={`aspect-square rounded-xl border transition-all duration-200 hover:scale-110 hover:shadow-lg ${
                   isDark
@@ -599,7 +615,24 @@ export default function KanjiPage() {
                       : "bg-green-50 border-green-500"
                   }`}
                 >
-                  <p className="text-sm text-green-600">Added to flashcards!</p>
+                  <p className="text-sm text-green-600">
+                    ✓ Added to flashcards!
+                  </p>
+                </div>
+              )}
+
+              {/* Already in Deck Message */}
+              {isAlreadyInDeck && !addedToFlashcards && (
+                <div
+                  className={`mb-4 p-4 rounded-lg border-l-4 ${
+                    isDark
+                      ? "bg-blue-900/20 border-blue-500"
+                      : "bg-blue-50 border-blue-500"
+                  }`}
+                >
+                  <p className="text-sm text-blue-600">
+                    ℹ️ This kanji is already in your flashcard deck
+                  </p>
                 </div>
               )}
 
@@ -648,10 +681,14 @@ export default function KanjiPage() {
               {/* Add to Flashcards Button */}
               <button
                 onClick={handleAddToFlashcards}
-                disabled={addingToFlashcards || addedToFlashcards}
+                disabled={
+                  addingToFlashcards || addedToFlashcards || isAlreadyInDeck
+                }
                 className={`w-full mt-3 px-6 py-3 rounded-lg font-medium transition-all ${
                   addedToFlashcards
                     ? "bg-green-500 text-white cursor-default"
+                    : isAlreadyInDeck
+                    ? "bg-gray-400 text-white cursor-not-allowed"
                     : addingToFlashcards
                     ? "bg-gray-400 text-white cursor-not-allowed"
                     : "bg-primary-500 hover:bg-primary-600 text-white"
@@ -664,6 +701,8 @@ export default function KanjiPage() {
                   </span>
                 ) : addedToFlashcards ? (
                   "✓ Added to Flashcards"
+                ) : isAlreadyInDeck ? (
+                  "Already in Deck"
                 ) : (
                   "Add to Flashcards"
                 )}

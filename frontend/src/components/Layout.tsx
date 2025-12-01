@@ -3,11 +3,15 @@ import { Moon, Sun } from "lucide-react";
 import { Link, Outlet } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
+import { useToastStore } from "../store/toastStore";
 import AudioControl from "./AudioControl";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { ToastItem } from "./Toast";
 
 export default function Layout() {
   const { isAuthenticated, user, logout } = useAuthStore();
   const { isDark, toggleTheme } = useThemeStore();
+  const { toasts, removeToast } = useToastStore();
 
   return (
     <TooltipProvider>
@@ -102,6 +106,16 @@ export default function Layout() {
           <Outlet />
         </main>
 
+        {/* Toast Notifications */}
+        <div className="fixed top-20 right-4 z-50 flex flex-col items-end">
+          {toasts.map((toast) => (
+            <ToastItem key={toast.id} toast={toast} onClose={removeToast} />
+          ))}
+        </div>
+
+        {/* Confirm Dialog */}
+        <ConfirmDialog />
+
         <footer
           className={`mt-12 border-t py-10 transition-colors duration-200 ${
             isDark
@@ -112,13 +126,7 @@ export default function Layout() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="text-center md:text-left">
-                <h3
-                  className={`text-xl font-bold ${
-                    isDark ? "text-white" : "text-gray-900"
-                  }`}
-                >
-                  花言葉 HanaKotoba
-                </h3>
+                <h3 className="text-xl font-bold text-primary-600">花言葉</h3>
                 <p className="text-sm mt-1">
                   Your comprehensive platform for learning Japanese.
                 </p>
