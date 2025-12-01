@@ -13,101 +13,25 @@ export default function Layout() {
     <TooltipProvider>
       <div className={`min-h-screen ${isDark ? "bg-gray-900" : "bg-gray-50"}`}>
         <nav
-          className={`${
-            isDark ? "bg-gray-800 border-b border-gray-700" : "bg-white"
+          className={`sticky top-0 z-40 backdrop-blur-md transition-colors duration-200 ${
+            isDark
+              ? "bg-gray-900/75 border-b border-gray-800 text-gray-100"
+              : "bg-white/85 border-b border-gray-200 text-gray-900"
           } shadow-sm`}
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex">
-                <Link to="/" className="flex items-center">
-                  <span className="text-2xl font-bold text-primary-600">
-                    花言葉
-                  </span>
-                  <span
-                    className={`ml-2 text-lg ${
-                      isDark ? "text-gray-200" : "text-gray-700"
-                    }`}
-                  >
-                    HanaKotoba
-                  </span>
-                </Link>
-
-                {isAuthenticated && (
-                  <div className="ml-10 flex items-center space-x-4">
-                    <Link
-                      to="/dashboard"
-                      className={`${
-                        isDark
-                          ? "text-gray-300 hover:text-primary-400"
-                          : "text-gray-700 hover:text-primary-600"
-                      }`}
-                    >
-                      Dashboard
-                    </Link>
-                    <Link
-                      to="/hiragana-katakana"
-                      className={`${
-                        isDark
-                          ? "text-gray-300 hover:text-primary-400"
-                          : "text-gray-700 hover:text-primary-600"
-                      }`}
-                    >
-                      Hiragana/Katakana
-                    </Link>
-                    <Link
-                      to="/kanji"
-                      className={`${
-                        isDark
-                          ? "text-gray-300 hover:text-primary-400"
-                          : "text-gray-700 hover:text-primary-600"
-                      }`}
-                    >
-                      Kanji
-                    </Link>
-                    <Link
-                      to="/vocabulary"
-                      className={`${
-                        isDark
-                          ? "text-gray-300 hover:text-primary-400"
-                          : "text-gray-700 hover:text-primary-600"
-                      }`}
-                    >
-                      Vocabulary
-                    </Link>
-
-                    <Link
-                      to="/grammar"
-                      className={`${
-                        isDark
-                          ? "text-gray-300 hover:text-primary-400"
-                          : "text-gray-700 hover:text-primary-600"
-                      }`}
-                    >
-                      Grammar
-                    </Link>
-                    <Link
-                      to="/practice"
-                      className={`${
-                        isDark
-                          ? "text-gray-300 hover:text-primary-400"
-                          : "text-gray-700 hover:text-primary-600"
-                      }`}
-                    >
-                      Practice
-                    </Link>
-                    <Link
-                      to="/flashcards"
-                      className={`${
-                        isDark
-                          ? "text-gray-300 hover:text-primary-400"
-                          : "text-gray-700 hover:text-primary-600"
-                      }`}
-                    >
-                      Flashcards
-                    </Link>
+            <div className="flex items-center justify-between h-16">
+              <div className="flex items-center gap-4">
+                <Link to="/" className="flex items-center space-x-3">
+                  <div>
+                    <div className="text-xl font-bold text-primary-600">
+                      花言葉
+                    </div>
+                    <div className="text-sm opacity-80">
+                      HanaKotoba — Learn Japanese
+                    </div>
                   </div>
-                )}
+                </Link>
               </div>
 
               <div className="flex items-center space-x-4">
@@ -179,69 +103,71 @@ export default function Layout() {
         </main>
 
         <footer
-          className={`${
-            isDark ? "bg-gray-800 border-gray-700" : "bg-white"
-          } mt-12 border-t`}
+          className={`mt-12 border-t py-10 transition-colors duration-200 ${
+            isDark
+              ? "bg-gray-900 border-gray-800 text-gray-300"
+              : "bg-white border-gray-200 text-gray-600"
+          }`}
         >
-          <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h3
-                className={`text-2xl font-bold mb-4 ${
-                  isDark ? "text-white" : "text-gray-900"
-                }`}
-              >
-                花言葉 HanaKotoba
-              </h3>
-              <p
-                className={`mb-6 ${isDark ? "text-gray-400" : "text-gray-600"}`}
-              >
-                Your comprehensive platform for learning Japanese language.
-              </p>
-              <div
-                className={`flex justify-center gap-6 mb-6 ${
-                  isDark ? "text-gray-400" : "text-gray-600"
-                }`}
-              >
-                <Link
-                  to="/vocabulary"
-                  className={`${
-                    isDark ? "hover:text-primary-400" : "hover:text-primary-600"
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="text-center md:text-left">
+                <h3
+                  className={`text-xl font-bold ${
+                    isDark ? "text-white" : "text-gray-900"
                   }`}
                 >
-                  Vocabulary
-                </Link>
-                <Link
-                  to="/kanji"
-                  className={`${
-                    isDark ? "hover:text-primary-400" : "hover:text-primary-600"
-                  }`}
-                >
-                  Kanji
-                </Link>
-                <Link
-                  to="/grammar"
-                  className={`${
-                    isDark ? "hover:text-primary-400" : "hover:text-primary-600"
-                  }`}
-                >
-                  Grammar
-                </Link>
-                <Link
-                  to="/flashcards"
-                  className={`${
-                    isDark ? "hover:text-primary-400" : "hover:text-primary-600"
-                  }`}
-                >
-                  Flashcards
-                </Link>
+                  花言葉 HanaKotoba
+                </h3>
+                <p className="text-sm mt-1">
+                  Your comprehensive platform for learning Japanese.
+                </p>
               </div>
-              <p
-                className={`text-sm ${
-                  isDark ? "text-gray-500" : "text-gray-500"
-                }`}
-              >
-                © 2025 HanaKotoba. All rights reserved.
-              </p>
+
+              <div className="flex items-center gap-6">
+                <nav className="hidden sm:flex gap-4">
+                  <Link to="/vocabulary" className="hover:underline">
+                    Vocabulary
+                  </Link>
+                  <Link to="/kanji" className="hover:underline">
+                    Kanji
+                  </Link>
+                  <Link to="/grammar" className="hover:underline">
+                    Grammar
+                  </Link>
+                </nav>
+
+                <div className="flex items-center gap-4">
+                  {/* Inline GitHub link */}
+                  <a
+                    href="https://github.com/VoxNut/HanaKotoba"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-100/60 dark:hover:bg-gray-800/60 transition"
+                    aria-label="HanaKotoba on GitHub"
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      aria-hidden
+                    >
+                      <path d="M12 .5C5.73.5.75 5.48.75 11.75c0 4.93 3.19 9.11 7.62 10.58.56.1.77-.24.77-.53 0-.26-.01-1.12-.02-2.03-3.1.67-3.76-1.49-3.76-1.49-.51-1.29-1.25-1.63-1.25-1.63-1.02-.7.08-.69.08-.69 1.12.08 1.71 1.15 1.71 1.15 1 .17 1.56-.75 1.56-.75.92-1.58 2.41-1.12 3-.86.09-.67.39-1.12.71-1.38-2.48-.28-5.09-1.24-5.09-5.53 0-1.22.44-2.22 1.16-3-.12-.28-.5-1.42.11-2.96 0 0 .95-.3 3.12 1.15.9-.25 1.87-.37 2.83-.38.96.01 1.93.13 2.83.38 2.17-1.45 3.12-1.15 3.12-1.15.61 1.54.23 2.68.11 2.96.72.78 1.16 1.78 1.16 3 0 4.3-2.61 5.25-5.1 5.52.4.35.76 1.04.76 2.1 0 1.52-.01 2.75-.01 3.12 0 .29.2.64.78.53 4.42-1.48 7.6-5.66 7.6-10.58C23.25 5.48 18.27.5 12 .5z" />
+                    </svg>
+                    <span className="text-sm">GitHub</span>
+                  </a>
+
+                  {/* Theme toggle remains */}
+                  <div className="hidden sm:block">
+                    {/* keep small controls here if needed */}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 text-center text-xs text-muted-foreground">
+              © {new Date().getFullYear()} HanaKotoba. All rights reserved.
             </div>
           </div>
         </footer>

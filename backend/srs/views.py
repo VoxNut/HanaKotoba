@@ -51,6 +51,39 @@ class CardViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=False, methods=['post'])
+    def add_kanji(self, request):
+        """Add a kanji to SRS flashcards"""
+        kanji_id = request.data.get('kanji_id')
+        if not kanji_id:
+            return Response(
+                {'error': 'kanji_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Check if card already exists
+        existing_card = Card.objects.filter(
+            user=request.user,
+            content_type='kanji',
+            object_id=kanji_id
+        ).first()
+
+        if existing_card:
+            return Response(
+                {'message': 'Kanji already in flashcards', 'card_id': existing_card.id},
+                status=status.HTTP_200_OK
+            )
+
+        # Create new card
+        card = Card.objects.create(
+            user=request.user,
+            content_type='kanji',
+            object_id=kanji_id
+        )
+
+        serializer = self.get_serializer(card)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
     @action(detail=False, methods=['get'])
     def stats(self, request):
         """Get SRS statistics"""

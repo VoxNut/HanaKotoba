@@ -158,10 +158,15 @@ CORS_ALLOW_CREDENTIALS = True
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
 
-# OpenAI Configuration
+# AI Configuration
+# OpenAI Configuration (optional, for premium features)
 OPENAI_API_KEY = config('OPENAI_API_KEY', default='')
 OPENAI_MODEL = config('OPENAI_MODEL', default='gpt-4')
 OPENAI_MAX_TOKENS = config('OPENAI_MAX_TOKENS', default=500, cast=int)
+
+# Google Gemini Configuration (primary AI for mnemonics)
+GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
+GEMINI_MODEL = config('GEMINI_MODEL', default='gemini-2.5-flash')
 
 # Celery Configuration
 CELERY_BROKER_URL = config(

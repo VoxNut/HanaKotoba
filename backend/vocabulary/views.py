@@ -68,8 +68,14 @@ class KanjiViewSet(viewsets.ModelViewSet):
     def mnemonics(self, request, pk=None):
         """Get all mnemonics for a kanji"""
         kanji = self.get_object()
-        mnemonics = kanji.mnemonics.filter(
-            is_public=True) | kanji.mnemonics.filter(user=request.user)
+        if request.user.is_authenticated:
+            # Show user's mnemonics and public ones
+            mnemonics = kanji.mnemonics.filter(
+                models.Q(is_public=True) | models.Q(user=request.user)
+            ).order_by('-created_at')
+        else:
+            # Only show public mnemonics for anonymous users
+            mnemonics = kanji.mnemonics.filter(is_public=True).order_by('-created_at')
         serializer = KanjiMnemonicSerializer(mnemonics, many=True)
         return Response(serializer.data)
 

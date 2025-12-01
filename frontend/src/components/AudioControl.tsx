@@ -1,8 +1,10 @@
 import { Volume2, VolumeX } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useThemeStore } from "../store/themeStore";
 import audio from "../utils/clickSound";
 
 export default function AudioControl() {
+  const isDark = useThemeStore((s) => s.isDark);
   const [muted, setMuted] = useState<boolean>(audio.isMuted());
 
   useEffect(() => {
@@ -20,12 +22,18 @@ export default function AudioControl() {
       <button
         onClick={handleToggle}
         aria-label="Toggle audio mute"
-        className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
+        className={`p-2 rounded-md transition-colors focus:outline-none ${
+          isDark ? "hover:bg-gray-700" : "hover:bg-gray-200"
+        }`}
       >
         {muted ? (
-          <VolumeX className="w-5 h-5 text-white" />
+          <VolumeX
+            className={`w-5 h-5 ${isDark ? "text-gray-300" : "text-gray-700"}`}
+          />
         ) : (
-          <Volume2 className="w-5 h-5 text-primary-500" />
+          <Volume2
+            className={`w-5 h-5 ${isDark ? "text-white" : "text-primary-500"}`}
+          />
         )}
       </button>
     </div>

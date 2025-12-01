@@ -1,4 +1,12 @@
 import openai
+# Trigger reload
+try:
+    import google.generativeai as genai
+    GEMINI_AVAILABLE = True
+except ImportError:
+    GEMINI_AVAILABLE = False
+    genai = None
+
 from django.conf import settings
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
@@ -9,9 +17,15 @@ from .serializers import (
     KanjiRecognitionRequestSerializer, MnemonicGenerationRequestSerializer,
     PitchAccentRequestSerializer, FlashcardGenerationRequestSerializer
 )
+from vocabulary.models import Kanji, KanjiMnemonic
 
-# Initialize OpenAI
-openai.api_key = settings.OPENAI_API_KEY
+# Initialize OpenAI (optional, for premium features)
+if settings.OPENAI_API_KEY:
+    openai.api_key = settings.OPENAI_API_KEY
+
+# Initialize Google Gemini (primary AI for mnemonics)
+if GEMINI_AVAILABLE and hasattr(settings, 'GEMINI_API_KEY') and settings.GEMINI_API_KEY:
+    genai.configure(api_key=settings.GEMINI_API_KEY)
 
 
 class AIFeatureViewSet(viewsets.GenericViewSet):
@@ -65,40 +79,97 @@ class AIFeatureViewSet(viewsets.GenericViewSet):
 
     @action(detail=False, methods=['post'])
     def generate_mnemonic(self, request):
-        """Generate AI mnemonic story for a kanji"""
+        """Generate AI mnemonic story for a kanji using Gemini API"""
         serializer = MnemonicGenerationRequestSerializer(data=request.data)
 
         if serializer.is_valid():
-            kanji = serializer.validated_data['kanji']
+            kanji_char = serializer.validated_data['kanji']
             meaning = serializer.validated_data.get('meaning', '')
 
             try:
-                prompt = f"""Create a memorable and creative mnemonic story to help remember the Japanese kanji '{kanji}'.
-The kanji means: {meaning if meaning else 'various meanings'}.
+                # Try to get kanji data from database for richer context
+                kanji_data = None
+                try:
+                    kanji_obj = Kanji.objects.get(character=kanji_char)
+                    kanji_data = {
+                        'character': kanji_obj.character,
+                        'meaning': kanji_obj.meaning,
+                        'kun_reading': kanji_obj.kun_reading,
+                        'on_reading': kanji_obj.on_reading,
+                        'radical': kanji_obj.radical,
+                        'stroke_count': kanji_obj.stroke_count
+                    }
+                except Kanji.DoesNotExist:
+                    kanji_data = {
+                        'character': kanji_char,
+                        'meaning': meaning,
+                        'kun_reading': '',
+                        'on_reading': '',
+                        'radical': '',
+                        'stroke_count': 0
+                    }
 
-The story should:
-1. Be vivid and easy to visualize
-2. Connect the visual components of the kanji to the meaning
-3. Be short (2-3 sentences)
-4. Be memorable and fun
+                # Check if Gemini package is installed
+                if not GEMINI_AVAILABLE:
+                    print(f"DEBUG: GEMINI_AVAILABLE = {GEMINI_AVAILABLE}")
+                    return Response(
+                        {'error': 'Gemini AI package not installed. Run: pip install google-generativeai'},
+                        status=status.HTTP_503_SERVICE_UNAVAILABLE
+                    )
 
-Mnemonic story:"""
+                # Check if Gemini API is configured
+                if not hasattr(settings, 'GEMINI_API_KEY') or not settings.GEMINI_API_KEY:
+                    print(f"DEBUG: hasattr(settings, 'GEMINI_API_KEY') = {hasattr(settings, 'GEMINI_API_KEY')}")
+                    print(f"DEBUG: settings.GEMINI_API_KEY = {settings.GEMINI_API_KEY[:20] if hasattr(settings, 'GEMINI_API_KEY') and settings.GEMINI_API_KEY else 'EMPTY'}")
+                    return Response(
+                        {'error': 'Gemini API key not configured. Please add GEMINI_API_KEY to your .env file. Get free key at: https://aistudio.google.com/app/apikey'},
+                        status=status.HTTP_503_SERVICE_UNAVAILABLE
+                    )
 
-                response = openai.chat.completions.create(
-                    model=settings.OPENAI_MODEL,
-                    messages=[
-                        {"role": "system", "content": "You are a helpful Japanese language learning assistant that creates memorable mnemonics."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    max_tokens=settings.OPENAI_MAX_TOKENS,
-                    temperature=0.7
-                )
+                # Generate mnemonic using Gemini
+                model = genai.GenerativeModel(settings.GEMINI_MODEL)
+                
+                # Build context-rich prompt
+                prompt = f"""Create a vivid, memorable mnemonic story to help remember the kanji "{kanji_data['character']}" which means "{kanji_data['meaning']}".
 
-                mnemonic = response.choices[0].message.content.strip()
+"""
+                
+                if kanji_data['kun_reading']:
+                    prompt += f"Kun reading: {kanji_data['kun_reading']}\n"
+                if kanji_data['on_reading']:
+                    prompt += f"On reading: {kanji_data['on_reading']}\n"
+                if kanji_data['radical']:
+                    prompt += f"Radical: {kanji_data['radical']}\n"
+                
+                prompt += f"""
+Create a mnemonic that:
+1. Is visual and imaginative (paint a picture in the mind)
+2. Connects the shape/components of the kanji to its meaning
+3. Is fun, quirky, or humorous if possible
+4. Is 2-4 sentences long (under 100 words)
+5. Uses simple, memorable imagery
+
+Just return the mnemonic story directly, no extra formatting or labels."""
+
+                response = model.generate_content(prompt)
+                mnemonic_text = response.text.strip()
+
+                # Save mnemonic to database if user is authenticated
+                if kanji_data and Kanji.objects.filter(character=kanji_char).exists():
+                    kanji_obj = Kanji.objects.get(character=kanji_char)
+                    KanjiMnemonic.objects.update_or_create(
+                        user=request.user,
+                        kanji=kanji_obj,
+                        defaults={
+                            'story': mnemonic_text,
+                            'is_ai_generated': True
+                        }
+                    )
 
                 return Response({
-                    'kanji': kanji,
-                    'mnemonic': mnemonic
+                    'kanji': kanji_char,
+                    'mnemonic': mnemonic_text,
+                    'saved': True
                 })
 
             except Exception as e:

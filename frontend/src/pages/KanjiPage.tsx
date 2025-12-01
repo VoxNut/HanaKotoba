@@ -25,6 +25,16 @@ export default function KanjiPage() {
   const [selectedJlpt, setSelectedJlpt] = useState<string | null>(null);
   const [selectedKanji, setSelectedKanji] = useState<Kanji | null>(null);
 
+  // Mnemonic generation state
+  const [generatingMnemonic, setGeneratingMnemonic] = useState(false);
+  const [mnemonic, setMnemonic] = useState<string | null>(null);
+  const [mnemonicError, setMnemonicError] = useState<string | null>(null);
+
+  // Flashcard state
+  const [addingToFlashcards, setAddingToFlashcards] = useState(false);
+  const [addedToFlashcards, setAddedToFlashcards] = useState(false);
+  const [flashcardError, setFlashcardError] = useState<string | null>(null);
+
   // Pagination state
   const [page, setPage] = useState<number>(1);
   const [pageSize] = useState<number>(50); // matches backend default page_size
@@ -105,6 +115,96 @@ export default function KanjiPage() {
   // Pagination helpers
   const canPrev = page > 1;
   const canNext = totalCount === null ? true : page * pageSize < totalCount;
+
+  // Fetch existing mnemonic for the selected kanji
+  const fetchExistingMnemonic = async (kanjiId: number) => {
+    try {
+      // Try to get existing mnemonic from the vocabulary endpoint
+      const response = await api.get(`/vocabulary/kanji/${kanjiId}/mnemonics/`);
+      if (response.data && response.data.length > 0) {
+        // Get the user's mnemonic (first one should be theirs)
+        setMnemonic(response.data[0].story);
+      }
+    } catch (err) {
+      // No existing mnemonic, that's okay
+      console.log("No existing mnemonic found");
+    }
+  };
+
+  // Generate mnemonic handler
+  const handleGenerateMnemonic = async () => {
+    if (!selectedKanji) return;
+
+    setGeneratingMnemonic(true);
+    setMnemonicError(null);
+
+    try {
+      const response = await api.post("/ai/features/generate_mnemonic/", {
+        kanji: selectedKanji.character,
+        meaning: selectedKanji.meaning,
+      });
+
+      setMnemonic(response.data.mnemonic);
+    } catch (err: unknown) {
+      console.error("Error generating mnemonic:", err);
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to generate mnemonic";
+      setMnemonicError(errorMessage);
+    } finally {
+      setGeneratingMnemonic(false);
+    }
+  };
+
+  // Add to flashcards handler
+  const handleAddToFlashcards = async () => {
+    if (!selectedKanji) return;
+
+    setAddingToFlashcards(true);
+    setFlashcardError(null);
+
+    try {
+      await api.post("/srs/cards/add_kanji/", {
+        kanji_id: selectedKanji.id,
+      });
+
+      setAddedToFlashcards(true);
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => setAddedToFlashcards(false), 3000);
+    } catch (err: unknown) {
+      console.error("Error adding to flashcards:", err);
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to add to flashcards";
+      setFlashcardError(errorMessage);
+    } finally {
+      setAddingToFlashcards(false);
+    }
+  };
+
+  // Handle modal close
+  const handleCloseModal = () => {
+    setSelectedKanji(null);
+    setMnemonic(null);
+    setMnemonicError(null);
+    setGeneratingMnemonic(false);
+    setAddedToFlashcards(false);
+    setFlashcardError(null);
+  };
+
+  // Render mnemonic with bold text for **word**
+  const renderMnemonic = (text: string) => {
+    const parts = text.split(/\*\*(.*?)\*\*/g);
+    return parts.map((part, index) => {
+      // Odd indices are the text between ** **
+      if (index % 2 === 1) {
+        return (
+          <strong key={index} className="font-bold">
+            {part}
+          </strong>
+        );
+      }
+      return part;
+    });
+  };
 
   return (
     <div
@@ -280,7 +380,10 @@ export default function KanjiPage() {
             {kanjis.map((kanji) => (
               <button
                 key={kanji.id}
-                onClick={() => setSelectedKanji(kanji)}
+                onClick={() => {
+                  setSelectedKanji(kanji);
+                  fetchExistingMnemonic(kanji.id);
+                }}
                 className={`aspect-square rounded-xl border transition-all duration-200 hover:scale-110 hover:shadow-lg ${
                   isDark
                     ? "bg-gray-800 border-gray-700 hover:border-primary-600"
@@ -312,7 +415,7 @@ export default function KanjiPage() {
             >
               {/* Close Button */}
               <button
-                onClick={() => setSelectedKanji(null)}
+                onClick={handleCloseModal}
                 className={`absolute top-4 right-4 p-2 rounded-lg ${
                   isDark
                     ? "hover:bg-gray-700 text-gray-400"
@@ -448,21 +551,123 @@ export default function KanjiPage() {
                 </div>
               </div>
 
+              {/* Mnemonic Section */}
+              {mnemonic && (
+                <div
+                  className={`mb-6 p-4 rounded-lg border-l-4 ${
+                    isDark
+                      ? "bg-primary-900/20 border-primary-500"
+                      : "bg-primary-50 border-primary-500"
+                  }`}
+                >
+                  <h3
+                    className={`text-sm font-medium mb-2 ${
+                      isDark ? "text-primary-400" : "text-primary-600"
+                    }`}
+                  >
+                    💡 Mnemonic Story
+                  </h3>
+                  <p
+                    className={`text-base leading-relaxed ${
+                      isDark ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    {renderMnemonic(mnemonic)}
+                  </p>
+                </div>
+              )}
+
+              {/* Mnemonic Error */}
+              {mnemonicError && (
+                <div
+                  className={`mb-6 p-4 rounded-lg border-l-4 ${
+                    isDark
+                      ? "bg-red-900/20 border-red-500"
+                      : "bg-red-50 border-red-500"
+                  }`}
+                >
+                  <p className="text-sm text-red-600">⚠️ {mnemonicError}</p>
+                </div>
+              )}
+
+              {/* Flashcard Success Message */}
+              {addedToFlashcards && (
+                <div
+                  className={`mb-4 p-4 rounded-lg border-l-4 ${
+                    isDark
+                      ? "bg-green-900/20 border-green-500"
+                      : "bg-green-50 border-green-500"
+                  }`}
+                >
+                  <p className="text-sm text-green-600">Added to flashcards!</p>
+                </div>
+              )}
+
+              {/* Flashcard Error */}
+              {flashcardError && (
+                <div
+                  className={`mb-4 p-4 rounded-lg border-l-4 ${
+                    isDark
+                      ? "bg-red-900/20 border-red-500"
+                      : "bg-red-50 border-red-500"
+                  }`}
+                >
+                  <p className="text-sm text-red-600">⚠️ {flashcardError}</p>
+                </div>
+              )}
+
               {/* Action Buttons */}
               <div className="flex gap-3">
                 <button className="flex-1 bg-primary-500 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-all">
                   Practice Writing
                 </button>
                 <button
+                  onClick={handleGenerateMnemonic}
+                  disabled={generatingMnemonic}
                   className={`flex-1 border px-6 py-3 rounded-lg font-medium transition-all ${
-                    isDark
+                    generatingMnemonic
+                      ? "opacity-50 cursor-not-allowed"
+                      : isDark
                       ? "border-gray-600 hover:bg-gray-700 text-white"
                       : "border-gray-300 hover:bg-gray-100 text-gray-900"
                   }`}
                 >
-                  Create Mnemonic
+                  {generatingMnemonic ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                      Generating...
+                    </span>
+                  ) : mnemonic ? (
+                    "Regenerate Mnemonic"
+                  ) : (
+                    "Create Mnemonic"
+                  )}
                 </button>
               </div>
+
+              {/* Add to Flashcards Button */}
+              <button
+                onClick={handleAddToFlashcards}
+                disabled={addingToFlashcards || addedToFlashcards}
+                className={`w-full mt-3 px-6 py-3 rounded-lg font-medium transition-all ${
+                  addedToFlashcards
+                    ? "bg-green-500 text-white cursor-default"
+                    : addingToFlashcards
+                    ? "bg-gray-400 text-white cursor-not-allowed"
+                    : "bg-primary-500 hover:bg-primary-600 text-white"
+                }`}
+              >
+                {addingToFlashcards ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Adding...
+                  </span>
+                ) : addedToFlashcards ? (
+                  "✓ Added to Flashcards"
+                ) : (
+                  "Add to Flashcards"
+                )}
+              </button>
             </div>
           </div>
         )}
