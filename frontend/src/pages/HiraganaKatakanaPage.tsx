@@ -197,7 +197,7 @@ export default function HiraganaKatakanaPage() {
       <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-primary-600">
             {selectedScript === "hiragana"
               ? "Hiragana (ひらがな)"
               : "Katakana (カタカナ)"}
@@ -406,9 +406,11 @@ export default function HiraganaKatakanaPage() {
             {selectedScript === "hiragana" ? (
               <>
                 <p>
-                  <strong>Hiragana (ひらがな)</strong> is one of the three main
-                  writing systems in Japanese. It consists of 46 basic
-                  characters, each representing a syllable.
+                  <strong className="text-primary-600">
+                    Hiragana (ひらがな)
+                  </strong>{" "}
+                  is one of the three main writing systems in Japanese. It
+                  consists of 46 basic characters, each representing a syllable.
                 </p>
                 <p>
                   <strong>Usage:</strong> Hiragana is primarily used for native

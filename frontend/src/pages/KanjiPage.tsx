@@ -115,7 +115,7 @@ export default function KanjiPage() {
       <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-primary-600">
             Kanji Learning (漢字)
           </h1>
           <p

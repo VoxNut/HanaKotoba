@@ -3,6 +3,7 @@ import Layout from "./components/Layout";
 import PrivateRoute from "./components/PrivateRoute";
 import DashboardPage from "./pages/DashboardPage";
 import FlashcardsPage from "./pages/FlashcardsPage";
+import GrammarDetailPage from "./pages/GrammarDetailPage";
 import GrammarPage from "./pages/GrammarPage";
 import HiraganaKatakanaPage from "./pages/HiraganaKatakanaPage";
 import HomePage from "./pages/HomePage";
@@ -26,6 +27,7 @@ function App() {
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="vocabulary" element={<VocabularyPage />} />
           <Route path="grammar" element={<GrammarPage />} />
+          <Route path="grammar/:slug" element={<GrammarDetailPage />} />
           <Route path="practice" element={<PracticePage />} />
           <Route path="flashcards" element={<FlashcardsPage />} />
           <Route path="kanji-graph/:kanji?" element={<KanjiGraphPage />} />
