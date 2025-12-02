@@ -17,13 +17,16 @@ export const DrawInput: React.FC = () => {
 
   const isDark = useThemeStore((s) => s.isDark);
 
-  const inputOptions = {
-    width: 220,
-    height: 220,
-    language: "ja",
-    numOfWords: 1,
-    numOfReturn: 64,
-  };
+  const inputOptions = React.useMemo(
+    () => ({
+      width: 220,
+      height: 220,
+      language: "ja",
+      numOfWords: 1,
+      numOfReturn: 64,
+    }),
+    []
+  );
 
   const inputCallback = (result: string[], err: string) => {
     if (err) {
@@ -67,20 +70,59 @@ export const DrawInput: React.FC = () => {
     setInputSuggestions([]);
   };
 
+  const undoStroke = React.useCallback(() => {
+    if (canvas) {
+      try {
+        // Access the trace data and remove the last stroke
+        const trace = canvas.getTrace();
+        if (trace && trace.length > 0) {
+          // Remove last stroke and clear canvas
+          trace.pop();
+          canvas.erase();
+          // Re-recognize with remaining strokes if any
+          if (trace.length > 0) {
+            canvas.recognize(trace, inputOptions, inputCallback);
+          } else {
+            setInputSuggestions([]);
+          }
+        }
+      } catch (e) {
+        console.error("Undo failed:", e);
+        // Fallback: just clear everything
+        canvas.erase();
+        setInputSuggestions([]);
+      }
+    }
+  }, [canvas, inputOptions]);
+
+  // Add keyboard shortcut for undo (Ctrl+Z)
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === "z") {
+        e.preventDefault();
+        undoStroke();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [undoStroke]);
+
   return (
-    <div className="relative w-[220px] h-[220px] mx-auto bg-background">
-      <div className="absolute left-1/2 h-full border-l border-dashed border-slate-600/20 dark:border-slate-600/60 pointer-events-none z-10" />
-      <div className="absolute top-1/2 w-full border-t border-dashed border-slate-600/20 dark:border-slate-600/60 pointer-events-none z-10" />
-      <TouchIsolator>
-        <canvas
-          width={220}
-          height={220}
-          ref={canvasRef}
-          id="handInput"
-          className="relative w-[220px] h-[220px] border border-light rounded-lg cursor-crosshair bg-muted"
-        />
-      </TouchIsolator>
-      <div className="h-10 w-full pt-2 flex items-center justify-between">
+    <div className="relative w-full">
+      <div className="relative w-[220px] h-[220px] mx-auto bg-background">
+        <div className="absolute left-1/2 h-full border-l border-dashed border-slate-600/20 dark:border-slate-600/60 pointer-events-none z-10" />
+        <div className="absolute top-1/2 w-full border-t border-dashed border-slate-600/20 dark:border-slate-600/60 pointer-events-none z-10" />
+        <TouchIsolator>
+          <canvas
+            width={220}
+            height={220}
+            ref={canvasRef}
+            id="handInput"
+            className="relative w-[220px] h-[220px] border border-light rounded-lg cursor-crosshair bg-muted"
+          />
+        </TouchIsolator>
+      </div>
+      <div className="w-[220px] mx-auto mt-2 flex items-center justify-between gap-1">
         <Button
           aria-label="Clear canvas"
           variant="destructive"
@@ -90,22 +132,26 @@ export const DrawInput: React.FC = () => {
         >
           <CircleXIcon className="w-4 h-4" />
         </Button>
-        {inputSuggestions.map((suggestion, index) => (
-          <Link
-            key={index}
-            to={`/kanji-graph/${suggestion}`}
-            className={cn(buttonVariants({ variant: "ghost" }), "w-8 h-8")}
-            style={{
-              color:
-                getComputedStyle(document.body)
-                  .getPropertyValue("--color-primary-600")
-                  ?.trim() || undefined,
-            }}
-            onClick={eraseKanji}
-          >
-            {suggestion}
-          </Link>
-        ))}
+        <div className="flex-1 flex items-center justify-center gap-1">
+          {inputSuggestions.map((suggestion, index) => (
+            <Link
+              key={index}
+              to={`/kanji-graph/${suggestion}`}
+              className={cn(
+                buttonVariants({ variant: "ghost" }),
+                "w-8 h-8 p-0"
+              )}
+              style={{
+                color:
+                  getComputedStyle(document.body)
+                    .getPropertyValue("--color-primary-600")
+                    ?.trim() || undefined,
+              }}
+            >
+              {suggestion}
+            </Link>
+          ))}
+        </div>
         <Button
           variant="default"
           size="icon"

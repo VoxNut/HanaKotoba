@@ -5,12 +5,7 @@ import { cn } from "@/lib/utils";
 import type { BothGraphData, KanjiInfo } from "@/types/kanji";
 import { ResizeObserver } from "@juggle/resize-observer";
 import { useAtom } from "jotai";
-import {
-  ArrowUpFromDotIcon,
-  CircleArrowOutUpRightIcon,
-  MaximizeIcon,
-  RefreshCcwIcon,
-} from "lucide-react";
+import { ArrowUpFromDotIcon, MaximizeIcon, RefreshCcwIcon } from "lucide-react";
 
 import { usePathname } from "next/navigation";
 import * as React from "react";
@@ -18,21 +13,22 @@ import useMeasure from "react-use-measure";
 import { Button } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
-import {
-  outLinksAtom,
-  particlesAtom,
-  rotateAtom,
-  styleAtom,
-} from "@/lib/store";
+import { particlesAtom, rotateAtom, styleAtom } from "@/lib/store";
 
 const Graph2DNoSSR = React.lazy(() => import("./graph-2D"));
+const Graph3DNoSSR = React.lazy(() => import("./graph-3D"));
 
 interface Props {
   kanjiInfo: KanjiInfo | null;
   graphData: BothGraphData | null;
+  showOutgoingLinks?: boolean;
 }
 
-export const Graphs: React.FC<Props> = ({ kanjiInfo, graphData }) => {
+export const Graphs: React.FC<Props> = ({
+  kanjiInfo,
+  graphData,
+  showOutgoingLinks = true,
+}) => {
   const [measureRef, bounds] = useMeasure({
     polyfill: ResizeObserver,
     // debounce: 50,
@@ -40,18 +36,16 @@ export const Graphs: React.FC<Props> = ({ kanjiInfo, graphData }) => {
 
   const [style, setStyle] = useAtom(styleAtom);
   const [rotate, setRotate] = useAtom(rotateAtom);
-  const [outLinks, setOutLinks] = useAtom(outLinksAtom);
   const [particles, setParticles] = useAtom(particlesAtom);
+
+  // Use prop instead of atom for outLinks
+  const outLinks = showOutgoingLinks;
 
   const handleRotateChange = (value: boolean) => {
     React.startTransition(() => setRotate(value));
   };
   const handleStyleChange = (value: string) => {
     React.startTransition(() => setStyle(value as "3D" | "2D"));
-  };
-  const handleOutLinksChange = (value: boolean) => {
-    // Outlinks toggle is user-facing and should be instant — avoid batching with startTransition
-    setOutLinks(value);
   };
   const handleParticlesChange = (value: boolean) => {
     // Particles toggle is small and user-perceivable; apply immediately
@@ -128,6 +122,7 @@ export const Graphs: React.FC<Props> = ({ kanjiInfo, graphData }) => {
         >
           <TabsList className="px-1">
             <TabsTrigger value="2D">2D</TabsTrigger>
+            <TabsTrigger value="3D">3D</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -135,6 +130,24 @@ export const Graphs: React.FC<Props> = ({ kanjiInfo, graphData }) => {
         {kanjiInfo && style === "2D" && (
           <React.Suspense fallback={<div />}>
             <Graph2DNoSSR
+              key={tabValue + random + pathname + (outLinks ? "o" : "i")}
+              kanjiInfo={kanjiInfo}
+              graphData={
+                {
+                  withOutLinks: dedupeGraph(graphData?.withOutLinks),
+                  noOutLinks: dedupeGraph(graphData?.noOutLinks),
+                } as BothGraphData
+              }
+              showOutLinks={outLinks}
+              showParticles={particles}
+              triggerFocus={tabValue + random}
+              bounds={bounds}
+            />
+          </React.Suspense>
+        )}
+        {kanjiInfo && style === "3D" && (
+          <React.Suspense fallback={<div />}>
+            <Graph3DNoSSR
               key={tabValue + random + pathname + (outLinks ? "o" : "i")}
               kanjiInfo={kanjiInfo}
               graphData={
@@ -186,24 +199,6 @@ export const Graphs: React.FC<Props> = ({ kanjiInfo, graphData }) => {
             </TooltipTrigger>
             <TooltipContent>
               <p>Show arrow particles</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-        <div>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Toggle
-                className={cn("size-10", outLinks ? "bg-accent" : "")}
-                variant="outline"
-                aria-label="Show out links"
-                pressed={outLinks}
-                onPressedChange={handleOutLinksChange}
-              >
-                <CircleArrowOutUpRightIcon className="size-4" />
-              </Toggle>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Show outgoing links</p>
             </TooltipContent>
           </Tooltip>
         </div>

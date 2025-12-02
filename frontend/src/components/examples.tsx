@@ -48,8 +48,8 @@ export const Examples = ({ kanjiInfo }: { kanjiInfo: KanjiInfo | null }) => {
   };
 
   return (
-    <div className="size-full grid grid-rows-[36px_1fr] p-4 mb-14">
-      <div>
+    <div className="size-full overflow-auto">
+      <div className="space-y-2">
         {/* Examples with audio (DB-provided `examples`) */}
         {(kanjiInfo?.examples || []).length > 0 && (
           <h5 className="text-foreground/50 text-sm my-2">

@@ -15,6 +15,7 @@ export default function KanjiGraphPage() {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
+  const [showOutgoingLinks, setShowOutgoingLinks] = useState(true);
   const navigate = useNavigate();
 
   const params = useParams();
@@ -255,10 +256,17 @@ export default function KanjiGraphPage() {
         isDark ? "text-white" : "text-gray-900"
       }`}
     >
+      {/* Top: Search, Kanji Details, and Radical */}
       <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-12 gap-6">
         {/* Left: Search + Handwriting */}
         <div className="col-span-3 space-y-4">
-          <div>
+          <div
+            className={`p-4 rounded-lg border ${
+              isDark
+                ? "bg-gray-800 border-gray-700"
+                : "bg-white border-gray-200"
+            }`}
+          >
             <label className="block text-sm font-medium mb-2">
               Search kanji
             </label>
@@ -308,7 +316,13 @@ export default function KanjiGraphPage() {
             )}
           </div>
 
-          <div>
+          <div
+            className={`p-4 rounded-lg border ${
+              isDark
+                ? "bg-gray-800 border-gray-700"
+                : "bg-white border-gray-200"
+            }`}
+          >
             <label className="block text-sm font-medium mb-2">Draw kanji</label>
             <DrawInput />
           </div>
@@ -317,11 +331,13 @@ export default function KanjiGraphPage() {
         {/* Middle: Kanji details + SVG */}
         <div className="col-span-6">
           <div
-            className={`p-4 rounded-lg ${
-              isDark ? "bg-gray-800" : "bg-white"
+            className={`p-6 rounded-lg border ${
+              isDark
+                ? "bg-gray-800 border-gray-700"
+                : "bg-white border-gray-200"
             } min-h-0 h-full`}
           >
-            <h2 className="text-xl font-bold mb-2 text-primary-600 dark:text-primary-400">
+            <h2 className="text-xl font-bold mb-4 text-primary-600 dark:text-primary-400">
               Kanji
             </h2>
             <div className="grid grid-cols-12 gap-4">
@@ -402,10 +418,20 @@ export default function KanjiGraphPage() {
               </div>
             </div>
 
+            {/* Separator */}
+            <div
+              className={`my-6 border-t ${
+                isDark ? "border-gray-700" : "border-gray-200"
+              }`}
+            />
+
             {/* SVG stroke animation preview */}
-            <div className="mt-4">
+            <div>
+              <h3 className="text-lg font-semibold mb-3 text-primary-600 dark:text-primary-400">
+                Stroke Order
+              </h3>
               {strokeSvg ? (
-                <div className="w-full p-2 rounded bg-muted text-primary-600 dark:text-primary-400">
+                <div className="w-full p-4 rounded-lg bg-muted">
                   <KanjiStrokeAnimation
                     svgContent={strokeSvg}
                     strokeCount={
@@ -428,8 +454,10 @@ export default function KanjiGraphPage() {
         {/* Right: Radical */}
         <div className="col-span-3">
           <div
-            className={`p-4 rounded-lg ${
-              isDark ? "bg-gray-800" : "bg-white"
+            className={`p-6 rounded-lg border ${
+              isDark
+                ? "bg-gray-800 border-gray-700"
+                : "bg-white border-gray-200"
             } h-full`}
           >
             <h2 className="sr-only">Radical</h2>
@@ -442,14 +470,20 @@ export default function KanjiGraphPage() {
       <div className="max-w-7xl mx-auto px-4 pb-12 grid grid-cols-12 gap-6">
         <div className="col-span-4">
           <div
-            className={`p-4 rounded-lg ${
-              isDark ? "bg-gray-800" : "bg-white"
-            } h-full`}
+            className={`p-6 rounded-lg border ${
+              isDark
+                ? "bg-gray-800 border-gray-700"
+                : "bg-white border-gray-200"
+            }`}
+            style={{ height: "580px" }}
           >
-            <h3 className="text-lg font-bold mb-2 text-primary-600">
+            <h3 className="text-lg font-bold mb-4 text-primary-600">
               Examples
             </h3>
-            <div className="h-full overflow-auto pr-2">
+            <div
+              className="overflow-auto"
+              style={{ height: "calc(100% - 40px)" }}
+            >
               <Examples kanjiInfo={kanjiInfo} />
             </div>
           </div>
@@ -457,15 +491,36 @@ export default function KanjiGraphPage() {
 
         <div className="col-span-8">
           <div
-            className={`p-4 rounded-lg ${
-              isDark ? "bg-gray-800" : "bg-white"
-            } h-full`}
+            className={`p-6 rounded-lg border ${
+              isDark
+                ? "bg-gray-800 border-gray-700"
+                : "bg-white border-gray-200"
+            }`}
+            style={{ height: "580px" }}
           >
-            <h3 className="text-lg font-bold mb-2 text-primary-600">
-              Decomposition / Composition Graph
-            </h3>
-            <div style={{ height: 520 }}>
-              <Graphs kanjiInfo={kanjiInfo} graphData={graphData} />
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-primary-600">
+                Decomposition / Composition Graph
+              </h3>
+              <button
+                onClick={() => setShowOutgoingLinks(!showOutgoingLinks)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  showOutgoingLinks
+                    ? "bg-primary-600 text-white"
+                    : isDark
+                    ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
+              >
+                {showOutgoingLinks ? "Show Incoming Only" : "Show Both Links"}
+              </button>
+            </div>
+            <div style={{ height: "calc(100% - 60px)" }}>
+              <Graphs
+                kanjiInfo={kanjiInfo}
+                graphData={graphData}
+                showOutgoingLinks={showOutgoingLinks}
+              />
             </div>
           </div>
         </div>

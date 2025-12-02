@@ -49,10 +49,16 @@ export function KanjiStrokeAnimation({
   const modifiedSvgContent = React.useMemo(() => {
     if (!svgContent) return "";
     return svgContent.replace(
-      /animation:zk var\(--t\) linear forwards var\(--d\);/,
+      /animation:zk var\(--t\) linear forwards var\(--d\);/g,
       "animation: none;"
     );
-  }, [svgContent]); // only recompute when svgContent changes
+  }, [svgContent]);
+
+  // Check if SVG has animatable paths
+  const hasAnimatablePaths = React.useMemo(() => {
+    if (!svgContent) return false;
+    return svgContent.includes("clip-path") && svgContent.includes("path");
+  }, [svgContent]);
 
   // only inject the modified SVG once
   React.useEffect(() => {
@@ -128,7 +134,13 @@ export function KanjiStrokeAnimation({
 
   // Animation loop
   React.useEffect(() => {
-    if (!isPlaying || !strokeCount || isUserSeeking || totalLength === 0)
+    if (
+      !isPlaying ||
+      !strokeCount ||
+      isUserSeeking ||
+      totalLength === 0 ||
+      !hasAnimatablePaths
+    )
       return;
 
     let frame: number;
@@ -147,7 +159,7 @@ export function KanjiStrokeAnimation({
     };
     frame = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(frame);
-  }, [isPlaying, isUserSeeking, totalLength, strokeCount]);
+  }, [isPlaying, isUserSeeking, totalLength, strokeCount, hasAnimatablePaths]);
 
   // Update the stroke dash offset based on drawProgress to control animation progress
   React.useEffect(() => {
@@ -194,32 +206,38 @@ export function KanjiStrokeAnimation({
         className="cursor-pointer"
         onClick={handleSvgClick}
       />
-      <div className="flex flex-row items-center gap-2 mt-2">
-        <Button
-          variant="link"
-          size="icon"
-          onClick={handlePlayPauseClick}
-          className="h-6 w-6 p-0 m-0"
-        >
-          {isPlaying ? (
-            <CirclePauseIcon className="h-4 w-4" />
-          ) : (
-            <CirclePlayIcon className="h-4 w-4" />
-          )}
-        </Button>
-        <Slider
-          min={0}
-          max={totalLength}
-          value={[drawProgress]}
-          onValueChange={(vals: number[]) => setDrawProgress(vals[0])}
-          className="w-20 h-4"
-          disabled={totalLength === 0}
-          onPointerDown={handleSliderMouseDown}
-          onPointerUp={handleSliderMouseUp}
-          onTouchStart={handleSliderTouchStart}
-          onTouchEnd={handleSliderTouchEnd}
-        />
-      </div>
+      {hasAnimatablePaths ? (
+        <div className="flex flex-row items-center gap-2 mt-2">
+          <Button
+            variant="link"
+            size="icon"
+            onClick={handlePlayPauseClick}
+            className="h-6 w-6 p-0 m-0"
+          >
+            {isPlaying ? (
+              <CirclePauseIcon className="h-4 w-4" />
+            ) : (
+              <CirclePlayIcon className="h-4 w-4" />
+            )}
+          </Button>
+          <Slider
+            min={0}
+            max={totalLength}
+            value={[drawProgress]}
+            onValueChange={(vals: number[]) => setDrawProgress(vals[0])}
+            className="w-20 h-4"
+            disabled={totalLength === 0}
+            onPointerDown={handleSliderMouseDown}
+            onPointerUp={handleSliderMouseUp}
+            onTouchStart={handleSliderTouchStart}
+            onTouchEnd={handleSliderTouchEnd}
+          />
+        </div>
+      ) : (
+        <div className="text-xs text-muted-foreground mt-2">
+          Static image (no stroke animation available)
+        </div>
+      )}
     </div>
   );
 }
