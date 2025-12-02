@@ -8,8 +8,8 @@ Usage:
 """
 
 import time
-import requests
-from bs4 import BeautifulSoup
+import subprocess
+import json
 from django.core.management.base import BaseCommand, CommandError
 from vocabulary.models import Vocabulary
 
@@ -119,52 +119,65 @@ class Command(BaseCommand):
         self.stdout.write('='*50)
 
     def scrape_example_sentences(self, word):
-        """Scrape example sentences from Jisho.org."""
+        """Fetch example sentences using unofficial-jisho-api via Node.js."""
         try:
-            url = f'https://jisho.org/search/{requests.utils.quote(word)}%23sentences'
-            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-            response = requests.get(url, headers=headers, timeout=10)
-            response.raise_for_status()
+            # Create a Node.js script to fetch examples
+            node_script = f"""
+const JishoAPI = require('unofficial-jisho-api');
+const jisho = new JishoAPI();
 
-            soup = BeautifulSoup(response.text, 'lxml')
-            examples = []
-
-            # Find sentence entries (li elements with class='sentence')
-            sentence_items = soup.find_all('li', class_='sentence')
+jisho.searchForExamples('{word}').then(result => {{
+    const examples = [];
+    for (let i = 0; i < Math.min(3, result.results.length); i++) {{
+        const example = result.results[i];
+        examples.push({{
+            kanji: example.kanji,
+            kana: example.kana,
+            english: example.english
+        }});
+    }}
+    console.log(JSON.stringify(examples));
+}}).catch(err => {{
+    console.error('Error:', err.message);
+    process.exit(1);
+}});
+"""
             
-            for item in sentence_items[:3]:  # Get up to 3 examples
-                try:
-                    # Find the sentence content div
-                    content_div = item.find('div', class_='sentence_content')
-                    if not content_div:
-                        continue
-
-                    # Get Japanese text from unlinked spans (excludes furigana)
-                    japanese_parts = []
-                    for span in content_div.find_all('span', class_='unlinked'):
-                        japanese_parts.append(span.get_text())
-                    japanese_text = ''.join(japanese_parts).strip()
-
-                    # Get English translation
-                    english_div = item.find('div', class_='english_sentence')
-                    if not english_div:
-                        continue
-                    
-                    english_span = english_div.find('span', class_='english')
-                    if not english_span:
-                        continue
-                    
-                    english = english_span.get_text(strip=True)
-
-                    if japanese_text and english:
-                        examples.append({
-                            'japanese': japanese_text,
-                            'english': english
-                        })
-                except Exception as e:
-                    continue
-
-            return examples[:2]  # Return up to 2 examples
+            # Run Node.js script
+            result = subprocess.run(
+                ['node', '-e', node_script],
+                capture_output=True,
+                text=True,
+                encoding='utf-8',
+                timeout=10
+            )
+            
+            if result.returncode != 0:
+                return []
+            
+            # Parse the JSON output
+            output = result.stdout.strip() if result.stdout else '[]'
+            examples_data = json.loads(output)
+            examples = []
+            
+            for ex in examples_data[:2]:  # Return up to 2 examples
+                japanese = ex.get('kanji', '') or ex.get('kana', '')
+                english = ex.get('english', '')
+                
+                if japanese and english:
+                    examples.append({
+                        'japanese': japanese,
+                        'english': english
+                    })
+            
+            return examples
+            
+        except subprocess.TimeoutExpired:
+            self.stdout.write(f'Timeout fetching examples for {word}')
+            return []
+        except json.JSONDecodeError:
+            self.stdout.write(f'Invalid JSON response for {word}')
+            return []
         except Exception as e:
-            self.stdout.write(f'Error scraping examples for {word}: {str(e)}')
+            self.stdout.write(f'Error fetching examples for {word}: {str(e)}')
             return []

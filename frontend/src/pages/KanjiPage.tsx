@@ -101,7 +101,7 @@ export default function KanjiPage() {
   // When JLPT filter changes, ask server for page 1 of filtered results
   useEffect(() => {
     fetchKanjis(1, selectedJlpt, searchQuery);
-  }, [selectedJlpt, fetchKanjis]);
+  }, [selectedJlpt, fetchKanjis, searchQuery]);
 
   // Debounced search: when searchQuery changes, fetch page 1 after a short delay
   useEffect(() => {
@@ -110,7 +110,7 @@ export default function KanjiPage() {
       fetchKanjis(1, selectedJlpt, searchQuery);
     }, 350);
     return () => clearTimeout(t);
-  }, [searchQuery, fetchKanjis]);
+  }, [searchQuery, fetchKanjis, selectedJlpt]);
 
   const jlptLevels = ["N5", "N4", "N3", "N2", "N1"];
 
@@ -581,7 +581,7 @@ export default function KanjiPage() {
                       isDark ? "text-primary-400" : "text-primary-600"
                     }`}
                   >
-                    💡 Mnemonic Story
+                    Mnemonic Story
                   </h3>
                   <p
                     className={`text-base leading-relaxed ${

@@ -278,10 +278,7 @@ export default function FlashcardsPage() {
   const getCardDisplayFront = (card: Card) => {
     if (card.content_type === "kanji") return card.kanji?.character || "?";
     if (card.content_type === "vocabulary") {
-      const word = card.vocabulary?.word || "?";
-      const example = card.vocabulary?.example_sentences?.[0]?.japanese;
-      // Always show word, and add example sentence on new line if available
-      return example ? `${word}\n\n${example}` : word;
+      return card.vocabulary?.word || "?";
     }
     if (card.content_type === "grammar")
       return card.grammar?.grammar_pattern || "?";
@@ -291,8 +288,7 @@ export default function FlashcardsPage() {
   const getCardDisplayBack = (card: Card) => {
     if (card.content_type === "kanji") return card.kanji?.meaning || "";
     if (card.content_type === "vocabulary") {
-      const exampleEn = card.vocabulary?.example_sentences?.[0]?.english;
-      return exampleEn || card.vocabulary?.meaning || "";
+      return card.vocabulary?.meaning || "";
     }
     if (card.content_type === "grammar") return card.grammar?.meaning || "";
     return card.back || "";
@@ -307,6 +303,13 @@ export default function FlashcardsPage() {
     if (card.content_type === "vocabulary")
       return card.vocabulary?.reading || "";
     return "";
+  };
+
+  const getCardExample = (card: Card) => {
+    if (card.content_type === "vocabulary") {
+      return card.vocabulary?.example_sentences?.[0];
+    }
+    return null;
   };
 
   // Review Mode UI
@@ -351,12 +354,22 @@ export default function FlashcardsPage() {
             {!currentReview.showAnswer ? (
               <>
                 <div
-                  className={`text-8xl japanese-text mb-6 whitespace-pre-line text-center ${
+                  className={`text-8xl japanese-text mb-6 text-center ${
                     isDark ? "text-white" : "text-gray-900"
                   }`}
                 >
                   {getCardDisplayFront(currentReview.card)}
                 </div>
+                {currentReview.card.content_type === "vocabulary" &&
+                  getCardExample(currentReview.card) && (
+                    <div
+                      className={`text-2xl japanese-text mb-4 text-center ${
+                        isDark ? "text-gray-300" : "text-gray-700"
+                      }`}
+                    >
+                      {getCardExample(currentReview.card)?.japanese}
+                    </div>
+                  )}
                 {currentReview.card.hint && (
                   <p
                     className={`text-sm mb-4 ${
@@ -378,28 +391,48 @@ export default function FlashcardsPage() {
             ) : (
               <>
                 <div
-                  className={`text-6xl japanese-text mb-4 ${
+                  className={`text-6xl japanese-text mb-4 text-center ${
                     isDark ? "text-white" : "text-gray-900"
                   }`}
                 >
                   {getCardDisplayFront(currentReview.card)}
                 </div>
-                <div
-                  className={`text-2xl mb-4 ${
-                    isDark ? "text-white" : "text-gray-900"
-                  }`}
-                >
-                  {getCardDisplayBack(currentReview.card)}
-                </div>
                 {getCardDisplayReading(currentReview.card) && (
                   <div
-                    className={`text-lg mb-8 japanese-text ${
+                    className={`text-2xl mb-4 japanese-text text-center ${
                       isDark ? "text-gray-400" : "text-gray-600"
                     }`}
                   >
                     {getCardDisplayReading(currentReview.card)}
                   </div>
                 )}
+                <div
+                  className={`text-2xl mb-4 text-center ${
+                    isDark ? "text-white" : "text-gray-900"
+                  }`}
+                >
+                  {getCardDisplayBack(currentReview.card)}
+                </div>
+                {currentReview.card.content_type === "vocabulary" &&
+                  getCardExample(currentReview.card) && (
+                    <div
+                      className={`text-lg mb-4 text-center japanese-text ${
+                        isDark ? "text-gray-300" : "text-gray-700"
+                      }`}
+                    >
+                      {getCardExample(currentReview.card)?.japanese}
+                    </div>
+                  )}
+                {currentReview.card.content_type === "vocabulary" &&
+                  getCardExample(currentReview.card) && (
+                    <div
+                      className={`text-base mb-8 text-center ${
+                        isDark ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      {getCardExample(currentReview.card)?.english}
+                    </div>
+                  )}
 
                 <div className="flex gap-3 mt-8">
                   <button
