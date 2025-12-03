@@ -5,12 +5,15 @@ import { Examples } from "../components/examples";
 import { Graphs } from "../components/graphs";
 import { KanjiStrokeAnimation } from "../components/kanji-animation";
 import { Radical } from "../components/radical";
+import api from "../services/api";
 import { useThemeStore } from "../store/themeStore";
+import { useToastStore } from "../store/toastStore";
 
 import type { BothGraphData, KanjiInfo } from "@/types/kanji";
 
 export default function KanjiGraphPage() {
   const isDark = useThemeStore((s) => s.isDark);
+  const addToast = useToastStore((state) => state.addToast);
 
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -25,6 +28,9 @@ export default function KanjiGraphPage() {
   const [graphData, setGraphData] = useState<BothGraphData | null>(null);
   const [strokeSvg, setStrokeSvg] = useState<string | null>(null);
 
+  // Flashcard state
+  const [isAlreadyInDeck, setIsAlreadyInDeck] = useState(false);
+
   useEffect(() => {
     // Sync with route param
     if (routeKanji) {
@@ -32,6 +38,53 @@ export default function KanjiGraphPage() {
       setQuery(routeKanji);
     }
   }, [routeKanji]);
+
+  // Check if kanji is already in flashcard deck
+  useEffect(() => {
+    if (kanjiInfo?.dbId) {
+      checkIfInDeck(kanjiInfo.dbId);
+    } else {
+      setIsAlreadyInDeck(false);
+    }
+  }, [kanjiInfo?.dbId]);
+
+  // Check if kanji is in deck
+  const checkIfInDeck = async (kanjiId: number) => {
+    try {
+      const response = await api.get(`/srs/cards/check_kanji/${kanjiId}/`);
+      setIsAlreadyInDeck(response.data.exists || false);
+    } catch (err) {
+      console.log("Error checking deck status:", err);
+      setIsAlreadyInDeck(false);
+    }
+  };
+
+  // Add to flashcards handler
+  const handleAddToFlashcards = async () => {
+    if (!kanjiInfo?.dbId) return;
+
+    try {
+      const response = await api.post("/srs/cards/add_kanji/", {
+        kanji_id: kanjiInfo.dbId,
+      });
+
+      if (response.status === 201) {
+        addToast("Added to flashcards!", "success");
+        setIsAlreadyInDeck(true);
+      } else if (response.status === 200) {
+        addToast("Already in flashcards!", "info");
+        setIsAlreadyInDeck(true);
+      }
+    } catch (err: any) {
+      if (err.response?.status === 200) {
+        addToast("Already in flashcards!", "info");
+        setIsAlreadyInDeck(true);
+      } else {
+        console.error("Error adding to flashcards:", err);
+        addToast("Failed to add to flashcards", "error");
+      }
+    }
+  };
 
   useEffect(() => {
     if (!query) {
@@ -448,6 +501,31 @@ export default function KanjiGraphPage() {
                 </div>
               )}
             </div>
+
+            {/* Flashcard Section */}
+            {kanjiInfo && (
+              <>
+                {/* Separator */}
+                <div
+                  className={`my-6 border-t ${
+                    isDark ? "border-gray-700" : "border-gray-200"
+                  }`}
+                />
+
+                {/* Add to Flashcards Button */}
+                <button
+                  onClick={handleAddToFlashcards}
+                  disabled={isAlreadyInDeck}
+                  className={`w-full px-6 py-3 rounded-lg font-medium transition-all ${
+                    isAlreadyInDeck
+                      ? "bg-gray-400 text-white cursor-not-allowed"
+                      : "bg-primary-500 hover:bg-primary-600 text-white"
+                  }`}
+                >
+                  {isAlreadyInDeck ? "Already in Deck" : "Add to Flashcards"}
+                </button>
+              </>
+            )}
           </div>
         </div>
 

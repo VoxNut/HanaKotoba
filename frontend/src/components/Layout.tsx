@@ -1,5 +1,6 @@
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Moon, Sun } from "lucide-react";
+import { ChevronDown, Moon, Sun } from "lucide-react";
+import { useState } from "react";
 import { Link, Outlet } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
@@ -12,6 +13,7 @@ export default function Layout() {
   const { isAuthenticated, user, logout } = useAuthStore();
   const { isDark, toggleTheme } = useThemeStore();
   const { toasts, removeToast } = useToastStore();
+  const [showNav, setShowNav] = useState(false);
 
   return (
     <TooltipProvider>
@@ -36,6 +38,126 @@ export default function Layout() {
                     </div>
                   </div>
                 </Link>
+
+                {/* Navigation Menu */}
+                {isAuthenticated && (
+                  <div className="relative ml-8">
+                    <button
+                      onClick={() => setShowNav(!showNav)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                        isDark
+                          ? "hover:bg-gray-800 text-gray-200"
+                          : "hover:bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      <span className="font-medium">Learn</span>
+                      <ChevronDown
+                        className={`w-4 h-4 transition-transform ${
+                          showNav ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+                    {showNav && (
+                      <div
+                        className={`absolute top-full left-0 mt-2 w-48 rounded-lg shadow-lg border ${
+                          isDark
+                            ? "bg-gray-800 border-gray-700"
+                            : "bg-white border-gray-200"
+                        }`}
+                        onMouseLeave={() => setShowNav(false)}
+                      >
+                        <Link
+                          to="/dashboard"
+                          className={`block px-4 py-2 rounded-t-lg transition-colors ${
+                            isDark
+                              ? "hover:bg-gray-700 text-gray-200"
+                              : "hover:bg-gray-50 text-gray-700"
+                          }`}
+                          onClick={() => setShowNav(false)}
+                        >
+                          Dashboard
+                        </Link>
+                        <Link
+                          to="/vocabulary"
+                          className={`block px-4 py-2 transition-colors ${
+                            isDark
+                              ? "hover:bg-gray-700 text-gray-200"
+                              : "hover:bg-gray-50 text-gray-700"
+                          }`}
+                          onClick={() => setShowNav(false)}
+                        >
+                          Vocabulary
+                        </Link>
+                        <Link
+                          to="/kanji"
+                          className={`block px-4 py-2 transition-colors ${
+                            isDark
+                              ? "hover:bg-gray-700 text-gray-200"
+                              : "hover:bg-gray-50 text-gray-700"
+                          }`}
+                          onClick={() => setShowNav(false)}
+                        >
+                          Kanji
+                        </Link>
+                        <Link
+                          to="/kanji-graph"
+                          className={`block px-4 py-2 transition-colors ${
+                            isDark
+                              ? "hover:bg-gray-700 text-gray-200"
+                              : "hover:bg-gray-50 text-gray-700"
+                          }`}
+                          onClick={() => setShowNav(false)}
+                        >
+                          Kanji Graph
+                        </Link>
+                        <Link
+                          to="/grammar"
+                          className={`block px-4 py-2 transition-colors ${
+                            isDark
+                              ? "hover:bg-gray-700 text-gray-200"
+                              : "hover:bg-gray-50 text-gray-700"
+                          }`}
+                          onClick={() => setShowNav(false)}
+                        >
+                          Grammar
+                        </Link>
+                        <Link
+                          to="/hiragana-katakana"
+                          className={`block px-4 py-2 transition-colors ${
+                            isDark
+                              ? "hover:bg-gray-700 text-gray-200"
+                              : "hover:bg-gray-50 text-gray-700"
+                          }`}
+                          onClick={() => setShowNav(false)}
+                        >
+                          Hiragana/Katakana
+                        </Link>
+                        <Link
+                          to="/flashcards"
+                          className={`block px-4 py-2 transition-colors ${
+                            isDark
+                              ? "hover:bg-gray-700 text-gray-200"
+                              : "hover:bg-gray-50 text-gray-700"
+                          }`}
+                          onClick={() => setShowNav(false)}
+                        >
+                          Flashcards
+                        </Link>
+                        <Link
+                          to="/practice"
+                          className={`block px-4 py-2 rounded-b-lg transition-colors ${
+                            isDark
+                              ? "hover:bg-gray-700 text-gray-200"
+                              : "hover:bg-gray-50 text-gray-700"
+                          }`}
+                          onClick={() => setShowNav(false)}
+                        >
+                          Practice
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center space-x-4">

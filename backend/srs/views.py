@@ -159,6 +159,21 @@ class CardViewSet(viewsets.ModelViewSet):
         return Response({'exists': exists})
 
     @action(detail=False, methods=['post'])
+    def check_vocabulary_batch(self, request):
+        """Check which vocabulary words from a list are already in the user's flashcard deck"""
+        vocab_ids = request.data.get('vocabulary_ids', [])
+        if not vocab_ids:
+            return Response({'saved_ids': []})
+
+        saved_cards = Card.objects.filter(
+            user=request.user,
+            content_type='vocabulary',
+            object_id__in=vocab_ids
+        ).values_list('object_id', flat=True)
+
+        return Response({'saved_ids': list(saved_cards)})
+
+    @action(detail=False, methods=['post'])
     def add_vocabulary(self, request):
         """Add a vocabulary word to SRS flashcards"""
         vocab_id = request.data.get('vocabulary_id')

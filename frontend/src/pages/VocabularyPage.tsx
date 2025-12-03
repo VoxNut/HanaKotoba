@@ -61,7 +61,32 @@ export default function VocabularyPage() {
       if (query) params.search = query;
 
       const resp = await api.get("/vocabulary/words/", { params });
-      setVocabulary(resp.data.results || []);
+      const words = resp.data.results || [];
+
+      // Check which words are already in flashcards
+      const wordIds = words.map((w: Vocabulary) => w.id);
+      if (wordIds.length > 0) {
+        try {
+          const checkResp = await api.post(
+            "/srs/cards/check_vocabulary_batch/",
+            {
+              vocabulary_ids: wordIds,
+            }
+          );
+          const savedIds = checkResp.data.saved_ids || [];
+          const wordsWithSavedStatus = words.map((w: Vocabulary) => ({
+            ...w,
+            is_saved: savedIds.includes(w.id),
+          }));
+          setVocabulary(wordsWithSavedStatus);
+        } catch (err) {
+          console.error("Error checking saved status:", err);
+          setVocabulary(words);
+        }
+      } else {
+        setVocabulary(words);
+      }
+
       setPage(pageNum);
       setTotalCount(resp.data.count || null);
     } catch (err) {

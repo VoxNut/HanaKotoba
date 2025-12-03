@@ -1,7 +1,7 @@
 import { useConfirmStore } from "../store/confirmStore";
 
 export function ConfirmDialog() {
-  const { dialog, hideConfirm } = useConfirmStore();
+  const { dialog } = useConfirmStore();
 
   if (!dialog || !dialog.isOpen) return null;
 

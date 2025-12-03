@@ -2,6 +2,7 @@ import { Filter, Search, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import api from "../services/api";
 import { useThemeStore } from "../store/themeStore";
+import { useToastStore } from "../store/toastStore";
 
 interface Kanji {
   id: number;
@@ -18,6 +19,7 @@ interface Kanji {
 
 export default function KanjiPage() {
   const isDark = useThemeStore((state) => state.isDark);
+  const addToast = useToastStore((state) => state.addToast);
   const [kanjis, setKanjis] = useState<Kanji[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,9 +33,6 @@ export default function KanjiPage() {
   const [mnemonicError, setMnemonicError] = useState<string | null>(null);
 
   // Flashcard state
-  const [addingToFlashcards, setAddingToFlashcards] = useState(false);
-  const [addedToFlashcards, setAddedToFlashcards] = useState(false);
-  const [flashcardError, setFlashcardError] = useState<string | null>(null);
   const [isAlreadyInDeck, setIsAlreadyInDeck] = useState(false);
 
   // Pagination state
@@ -173,24 +172,26 @@ export default function KanjiPage() {
   const handleAddToFlashcards = async () => {
     if (!selectedKanji) return;
 
-    setAddingToFlashcards(true);
-    setFlashcardError(null);
-
     try {
-      await api.post("/srs/cards/add_kanji/", {
+      const response = await api.post("/srs/cards/add_kanji/", {
         kanji_id: selectedKanji.id,
       });
 
-      setAddedToFlashcards(true);
-      // Auto-hide success message after 3 seconds
-      setTimeout(() => setAddedToFlashcards(false), 3000);
-    } catch (err: unknown) {
-      console.error("Error adding to flashcards:", err);
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to add to flashcards";
-      setFlashcardError(errorMessage);
-    } finally {
-      setAddingToFlashcards(false);
+      if (response.status === 201) {
+        addToast("Added to flashcards!", "success");
+        setIsAlreadyInDeck(true);
+      } else if (response.status === 200) {
+        addToast("Already in flashcards!", "info");
+        setIsAlreadyInDeck(true);
+      }
+    } catch (err: any) {
+      if (err.response?.status === 200) {
+        addToast("Already in flashcards!", "info");
+        setIsAlreadyInDeck(true);
+      } else {
+        console.error("Error adding to flashcards:", err);
+        addToast("Failed to add to flashcards", "error");
+      }
     }
   };
 
@@ -200,8 +201,6 @@ export default function KanjiPage() {
     setMnemonic(null);
     setMnemonicError(null);
     setGeneratingMnemonic(false);
-    setAddedToFlashcards(false);
-    setFlashcardError(null);
     setIsAlreadyInDeck(false);
   };
 
@@ -606,49 +605,6 @@ export default function KanjiPage() {
                 </div>
               )}
 
-              {/* Flashcard Success Message */}
-              {addedToFlashcards && (
-                <div
-                  className={`mb-4 p-4 rounded-lg border-l-4 ${
-                    isDark
-                      ? "bg-green-900/20 border-green-500"
-                      : "bg-green-50 border-green-500"
-                  }`}
-                >
-                  <p className="text-sm text-green-600">
-                    ✓ Added to flashcards!
-                  </p>
-                </div>
-              )}
-
-              {/* Already in Deck Message */}
-              {isAlreadyInDeck && !addedToFlashcards && (
-                <div
-                  className={`mb-4 p-4 rounded-lg border-l-4 ${
-                    isDark
-                      ? "bg-blue-900/20 border-blue-500"
-                      : "bg-blue-50 border-blue-500"
-                  }`}
-                >
-                  <p className="text-sm text-blue-600">
-                    ℹ️ This kanji is already in your flashcard deck
-                  </p>
-                </div>
-              )}
-
-              {/* Flashcard Error */}
-              {flashcardError && (
-                <div
-                  className={`mb-4 p-4 rounded-lg border-l-4 ${
-                    isDark
-                      ? "bg-red-900/20 border-red-500"
-                      : "bg-red-50 border-red-500"
-                  }`}
-                >
-                  <p className="text-sm text-red-600">⚠️ {flashcardError}</p>
-                </div>
-              )}
-
               {/* Action Buttons */}
               <div className="flex gap-3">
                 <button className="flex-1 bg-primary-500 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-all">
@@ -681,31 +637,14 @@ export default function KanjiPage() {
               {/* Add to Flashcards Button */}
               <button
                 onClick={handleAddToFlashcards}
-                disabled={
-                  addingToFlashcards || addedToFlashcards || isAlreadyInDeck
-                }
+                disabled={isAlreadyInDeck}
                 className={`w-full mt-3 px-6 py-3 rounded-lg font-medium transition-all ${
-                  addedToFlashcards
-                    ? "bg-green-500 text-white cursor-default"
-                    : isAlreadyInDeck
-                    ? "bg-gray-400 text-white cursor-not-allowed"
-                    : addingToFlashcards
+                  isAlreadyInDeck
                     ? "bg-gray-400 text-white cursor-not-allowed"
                     : "bg-primary-500 hover:bg-primary-600 text-white"
                 }`}
               >
-                {addingToFlashcards ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Adding...
-                  </span>
-                ) : addedToFlashcards ? (
-                  "✓ Added to Flashcards"
-                ) : isAlreadyInDeck ? (
-                  "Already in Deck"
-                ) : (
-                  "Add to Flashcards"
-                )}
+                {isAlreadyInDeck ? "Already in Deck" : "Add to Flashcards"}
               </button>
             </div>
           </div>
