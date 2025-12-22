@@ -145,7 +145,7 @@ export default function Layout() {
                         </Link>
                         <Link
                           to="/practice"
-                          className={`block px-4 py-2 rounded-b-lg transition-colors ${
+                          className={`block px-4 py-2 transition-colors ${
                             isDark
                               ? "hover:bg-gray-700 text-gray-200"
                               : "hover:bg-gray-50 text-gray-700"
@@ -153,6 +153,17 @@ export default function Layout() {
                           onClick={() => setShowNav(false)}
                         >
                           Practice
+                        </Link>
+                        <Link
+                          to="/text-to-speech"
+                          className={`block px-4 py-2 rounded-b-lg transition-colors ${
+                            isDark
+                              ? "hover:bg-gray-700 text-gray-200"
+                              : "hover:bg-gray-50 text-gray-700"
+                          }`}
+                          onClick={() => setShowNav(false)}
+                        >
+                          Text-to-Speech
                         </Link>
                       </div>
                     )}

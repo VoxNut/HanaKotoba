@@ -1,5 +1,6 @@
 import { ArrowLeft, Book } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
+import { TextToSpeech } from "../components/TextToSpeech";
 import { useThemeStore } from "../store/themeStore";
 
 interface TableRow {
@@ -866,14 +867,31 @@ export default function GrammarDetailPage() {
                                   : "bg-gray-50"
                               }
                             >
-                              {subsection.columns!.map((col, colIdx) => (
-                                <td
-                                  key={colIdx}
-                                  className="border border-gray-300 px-4 py-3"
-                                >
-                                  {row[col]}
-                                </td>
-                              ))}
+                              {subsection.columns!.map((col, colIdx) => {
+                                const cellContent = row[col];
+                                const hasJapanese =
+                                  /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(
+                                    cellContent
+                                  );
+
+                                return (
+                                  <td
+                                    key={colIdx}
+                                    className="border border-gray-300 px-4 py-3"
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <span>{cellContent}</span>
+                                      {hasJapanese && (
+                                        <TextToSpeech
+                                          text={cellContent}
+                                          language="ja"
+                                          compact
+                                        />
+                                      )}
+                                    </div>
+                                  </td>
+                                );
+                              })}
                             </tr>
                           ))}
                         </tbody>

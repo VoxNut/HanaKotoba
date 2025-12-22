@@ -1,5 +1,6 @@
 import { Filter, Search, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { TextToSpeech } from "../components/TextToSpeech";
 import api from "../services/api";
 import { useThemeStore } from "../store/themeStore";
 import { useToastStore } from "../store/toastStore";
@@ -468,6 +469,15 @@ export default function KanjiPage() {
                 >
                   {selectedKanji.meaning}
                 </p>
+              </div>
+
+              {/* TTS for Kanji */}
+              <div className="mb-6">
+                <TextToSpeech
+                  text={`${selectedKanji.character}。${selectedKanji.meaning}`}
+                  language="ja"
+                  compact
+                />
               </div>
 
               {/* Readings */}

@@ -1,5 +1,6 @@
-import { PlusCircle, Search, Volume2 } from "lucide-react";
+import { PlusCircle, Search } from "lucide-react";
 import { useEffect, useState } from "react";
+import { TextToSpeech } from "../components/TextToSpeech";
 import api from "../services/api";
 import { useThemeStore } from "../store/themeStore";
 import { useToastStore } from "../store/toastStore";
@@ -107,11 +108,6 @@ export default function VocabularyPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const playAudio = (audioUrl?: string) => {
-    if (!audioUrl) return;
-    const audio = new Audio(audioUrl);
-    audio.play();
-  };
 
   const toggleSaved = async (wordId: number) => {
     try {
@@ -371,16 +367,14 @@ export default function VocabularyPage() {
                     </div>
                   )}
 
-                {/* Audio Button */}
-                {word.audio_url && (
-                  <button
-                    onClick={() => playAudio(word.audio_url)}
-                    className="flex items-center gap-2 text-primary-500 hover:text-primary-600 transition-colors"
-                  >
-                    <Volume2 className="w-4 h-4" />
-                    <span className="text-sm">Play Audio</span>
-                  </button>
-                )}
+                {/* Audio/TTS Button */}
+                <div className="mt-3">
+                  <TextToSpeech
+                    text={`${word.word}。${word.meaning}`}
+                    language="ja"
+                    compact
+                  />
+                </div>
               </div>
             ))}
           </div>

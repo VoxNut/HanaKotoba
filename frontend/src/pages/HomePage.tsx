@@ -76,6 +76,13 @@ export default function HomePage() {
       description: "Show Kanji information and decomposition in graph form",
       route: "/kanji-graph",
     },
+    {
+      title: "Text-to-Speech",
+      icon: Sparkles,
+      description:
+        "Convert any Japanese text to natural speech. Perfect for practicing pronunciation and listening comprehension.",
+      route: "/text-to-speech",
+    },
   ];
 
   return (

@@ -17,6 +17,7 @@ from .serializers import (
     KanjiRecognitionRequestSerializer, MnemonicGenerationRequestSerializer,
     PitchAccentRequestSerializer, FlashcardGenerationRequestSerializer
 )
+from .pitch_accent_service import get_pitch_accent_service
 from vocabulary.models import Kanji, KanjiMnemonic
 
 # Initialize OpenAI (optional, for premium features)
@@ -219,6 +220,36 @@ Pitch accent:"""
             except Exception as e:
                 return Response(
                     {'error': f'Failed to generate pitch accent: {str(e)}'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny])
+    def analyze_pitch_accent(self, request):
+        """
+        Analyze pitch accent for Japanese text using Fugashi (MeCab).
+        
+        This endpoint uses local morphological analysis with the Kanjium
+        pitch accent dictionary - no external API calls required.
+        """
+        serializer = PitchAccentRequestSerializer(data=request.data)
+
+        if serializer.is_valid():
+            text = serializer.validated_data['text']
+
+            try:
+                service = get_pitch_accent_service()
+                words = service.analyze(text)
+
+                return Response({
+                    'text': text,
+                    'words': words
+                })
+
+            except Exception as e:
+                return Response(
+                    {'error': f'Failed to analyze pitch accent: {str(e)}'},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
 
