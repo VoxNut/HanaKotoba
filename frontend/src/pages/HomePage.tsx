@@ -8,6 +8,7 @@ import {
   PenTool,
   Scroll,
   Sparkles,
+  Speech,
   Target,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -78,7 +79,7 @@ export default function HomePage() {
     },
     {
       title: "Text-to-Speech",
-      icon: Sparkles,
+      icon: Speech,
       description:
         "Convert any Japanese text to natural speech. Perfect for practicing pronunciation and listening comprehension.",
       route: "/text-to-speech",
