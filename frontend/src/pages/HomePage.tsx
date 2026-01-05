@@ -4,6 +4,7 @@ import {
   ChartNetwork,
   ClipboardCheck,
   FlowerIcon,
+  Gamepad2,
   Languages,
   LayoutGrid,
   PenTool,
@@ -28,6 +29,13 @@ export default function HomePage() {
       description:
         "Master the Japanese phonetic alphabets with comprehensive charts and interative practive",
       route: "/hiragana-katakana",
+    },
+    {
+      title: "Kana Practice Game",
+      icon: Gamepad2,
+      description:
+        "Test your hiragana and katakana skills with our fun, gamified practice mode. Track your progress and beat your high score!",
+      route: "/kana-practice",
     },
     {
       title: "Kanji",
