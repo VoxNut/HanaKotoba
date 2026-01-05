@@ -168,6 +168,9 @@ OPENAI_MAX_TOKENS = config('OPENAI_MAX_TOKENS', default=500, cast=int)
 GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
 GEMINI_MODEL = config('GEMINI_MODEL', default='gemini-2.5-flash')
 
+# Hugging Face Configuration (for NLLB translation)
+HUGGINGFACE_API_KEY = config('HUGGINGFACE_API_KEY', default='')
+
 # Celery Configuration
 CELERY_BROKER_URL = config(
     'CELERY_BROKER_URL', default='redis://localhost:6379/0')

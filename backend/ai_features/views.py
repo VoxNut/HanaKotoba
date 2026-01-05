@@ -1,4 +1,6 @@
 import openai
+import requests
+import re
 # Trigger reload
 try:
     import google.generativeai as genai
@@ -15,7 +17,8 @@ from .models import KanjiRecognitionHistory, FlashcardSet
 from .serializers import (
     KanjiRecognitionSerializer, FlashcardSetSerializer,
     KanjiRecognitionRequestSerializer, MnemonicGenerationRequestSerializer,
-    PitchAccentRequestSerializer, FlashcardGenerationRequestSerializer
+    PitchAccentRequestSerializer, FlashcardGenerationRequestSerializer,
+    TranslationRequestSerializer
 )
 from .pitch_accent_service import get_pitch_accent_service
 from vocabulary.models import Kanji, KanjiMnemonic
@@ -27,6 +30,12 @@ if settings.OPENAI_API_KEY:
 # Initialize Google Gemini (primary AI for mnemonics)
 if GEMINI_AVAILABLE and hasattr(settings, 'GEMINI_API_KEY') and settings.GEMINI_API_KEY:
     genai.configure(api_key=settings.GEMINI_API_KEY)
+
+# Hugging Face NLLB language codes
+NLLB_LANGUAGE_CODES = {
+    'japanese': 'jpn_Jpan',
+    'english': 'eng_Latn',
+}
 
 
 class AIFeatureViewSet(viewsets.GenericViewSet):
@@ -45,6 +54,7 @@ class AIFeatureViewSet(viewsets.GenericViewSet):
             'generate_mnemonic': MnemonicGenerationRequestSerializer,
             'generate_pitch_accent': PitchAccentRequestSerializer,
             'generate_flashcards': FlashcardGenerationRequestSerializer,
+            'translate': TranslationRequestSerializer,
         }
         return action_serializers.get(self.action, KanjiRecognitionRequestSerializer)
 
@@ -334,6 +344,150 @@ Flashcards:"""
                 )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'])
+    def translate(self, request):
+        """Translate text between Japanese and English using MyMemory API (free)"""
+        serializer = TranslationRequestSerializer(data=request.data)
+
+        if serializer.is_valid():
+            text = serializer.validated_data['text']
+            source_lang = serializer.validated_data['source_lang']
+            target_lang = serializer.validated_data['target_lang']
+
+            if not text.strip():
+                return Response({
+                    'translated_text': '',
+                    'alternatives': [],
+                    'source_language': source_lang,
+                    'target_language': target_lang,
+                })
+
+            try:
+                # Use MyMemory Translation API (free, no API key required)
+                # https://mymemory.translated.net/doc/spec.php
+                
+                # Language codes for MyMemory
+                lang_codes = {
+                    'japanese': 'ja',
+                    'english': 'en',
+                }
+                
+                src_code = lang_codes.get(source_lang, 'ja')
+                tgt_code = lang_codes.get(target_lang, 'en')
+                langpair = f"{src_code}|{tgt_code}"
+                
+                # MyMemory API endpoint
+                api_url = "https://api.mymemory.translated.net/get"
+                
+                params = {
+                    'q': text,
+                    'langpair': langpair,
+                }
+                
+                response = requests.get(api_url, params=params, timeout=30)
+                
+                # Debug: Log response for troubleshooting
+                print(f"MyMemory API Response Status: {response.status_code}")
+                print(f"MyMemory API Response: {response.text[:500] if response.text else 'Empty'}")
+                
+                if not response.ok:
+                    return Response(
+                        {'error': f'Translation service error: HTTP {response.status_code}'},
+                        status=status.HTTP_502_BAD_GATEWAY
+                    )
+                
+                data = response.json()
+                
+                if data.get('responseStatus') != 200:
+                    error_msg = data.get('responseDetails', 'Translation failed')
+                    return Response(
+                        {'error': f'Translation error: {error_msg}'},
+                        status=status.HTTP_502_BAD_GATEWAY
+                    )
+                
+                main_translation = data.get('responseData', {}).get('translatedText', '')
+                
+                if not main_translation:
+                    return Response(
+                        {'error': 'No translation returned'},
+                        status=status.HTTP_502_BAD_GATEWAY
+                    )
+                
+                # Get alternative translations from matches if available
+                alternatives = []
+                matches = data.get('matches', [])
+                for match in matches[:3]:
+                    alt_text = match.get('translation', '')
+                    if alt_text and alt_text != main_translation and alt_text not in alternatives:
+                        alternatives.append(alt_text)
+                
+                # Also generate simple alternatives
+                generated_alts = self._generate_translation_alternatives(main_translation, target_lang)
+                for alt in generated_alts:
+                    if alt not in alternatives:
+                        alternatives.append(alt)
+                
+                alternatives = alternatives[:3]  # Limit to 3
+                
+                return Response({
+                    'translated_text': main_translation,
+                    'alternatives': alternatives,
+                    'source_language': source_lang,
+                    'target_language': target_lang,
+                })
+
+            except requests.exceptions.Timeout:
+                return Response(
+                    {'error': 'Translation request timed out. Please try again.'},
+                    status=status.HTTP_504_GATEWAY_TIMEOUT
+                )
+            except requests.exceptions.RequestException as e:
+                return Response(
+                    {'error': f'Translation service error: {str(e)}'},
+                    status=status.HTTP_502_BAD_GATEWAY
+                )
+            except Exception as e:
+                return Response(
+                    {'error': f'Translation failed: {str(e)}'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def _generate_translation_alternatives(self, text: str, target_lang: str) -> list:
+        """Generate simple alternative phrasings for the translation"""
+        alternatives = []
+        
+        if target_lang == 'english':
+            # English variations
+            substitutions = [
+                (r'is looking at', 'gazes at'),
+                (r'is looking out', 'gazes out'),
+                (r'is watching', 'watches'),
+                (r'^The ', 'A '),
+                (r'^A ', 'The '),
+            ]
+            for pattern, replacement in substitutions:
+                if re.search(pattern, text, re.IGNORECASE):
+                    variation = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+                    if variation != text and variation not in alternatives:
+                        alternatives.append(variation)
+        else:
+            # Japanese variations (politeness levels)
+            substitutions = [
+                (r'です。$', 'だ。'),
+                (r'ます。$', 'る。'),
+                (r'だ。$', 'です。'),
+                (r'ている。$', 'てる。'),
+            ]
+            for pattern, replacement in substitutions:
+                if re.search(pattern, text):
+                    variation = re.sub(pattern, replacement, text)
+                    if variation != text and variation not in alternatives:
+                        alternatives.append(variation)
+        
+        return alternatives[:3]  # Limit to 3 alternatives
 
 
 class FlashcardSetViewSet(viewsets.ModelViewSet):

@@ -44,3 +44,25 @@ class FlashcardGenerationRequestSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=200, required=False)
     card_count = serializers.IntegerField(
         min_value=1, max_value=50, default=10)
+
+
+class TranslationRequestSerializer(serializers.Serializer):
+    """Serializer for translation request"""
+    text = serializers.CharField(max_length=5000)
+    source_lang = serializers.ChoiceField(
+        choices=['japanese', 'english'],
+        required=True
+    )
+    target_lang = serializers.ChoiceField(
+        choices=['japanese', 'english'],
+        required=True
+    )
+
+
+class TranslationResponseSerializer(serializers.Serializer):
+    """Serializer for translation response"""
+    translated_text = serializers.CharField()
+    alternatives = serializers.ListField(child=serializers.CharField())
+    source_language = serializers.CharField()
+    target_language = serializers.CharField()
+

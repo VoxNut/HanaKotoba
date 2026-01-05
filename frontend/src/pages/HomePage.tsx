@@ -4,10 +4,10 @@ import {
   ChartNetwork,
   ClipboardCheck,
   FlowerIcon,
+  Languages,
   LayoutGrid,
   PenTool,
   Scroll,
-  Sparkles,
   Speech,
   Target,
 } from "lucide-react";
@@ -65,13 +65,6 @@ export default function HomePage() {
       route: "/practice",
     },
     {
-      title: "AI Features",
-      icon: Sparkles,
-      description:
-        "Get personalized mnemonics for every kanji, accurate pitch accent diagrams, and daily recommendations tailored to your level.",
-      route: "/dashboard",
-    },
-    {
       title: "Decompose Kanji",
       icon: ChartNetwork,
       description: "Show Kanji information and decomposition in graph form",
@@ -83,6 +76,13 @@ export default function HomePage() {
       description:
         "Convert any Japanese text to natural speech. Perfect for practicing pronunciation and listening comprehension.",
       route: "/text-to-speech",
+    },
+    {
+      title: "Translation",
+      icon: Languages,
+      description:
+        "Translate between Japanese and English with auto-detection. Powered by free NLLB-200 AI model.",
+      route: "/translation",
     },
   ];
 

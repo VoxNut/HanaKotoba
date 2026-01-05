@@ -13,6 +13,7 @@ import LoginPage from "./pages/LoginPage";
 import PracticePage from "./pages/PracticePage";
 import RegisterPage from "./pages/RegisterPage";
 import TextToSpeechPage from "./pages/TextToSpeechPage";
+import TranslationPage from "./pages/TranslationPage";
 import VocabularyPage from "./pages/VocabularyPage";
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
           <Route path="hiragana-katakana" element={<HiraganaKatakanaPage />} />
           <Route path="kanji" element={<KanjiPage />} />
           <Route path="text-to-speech" element={<TextToSpeechPage />} />
+          <Route path="translation" element={<TranslationPage />} />
         </Route>
       </Route>
     </Routes>
