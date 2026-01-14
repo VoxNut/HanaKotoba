@@ -1576,7 +1576,50 @@ export const HANDAKUTEN_KATAKANA = handakutenKatakana;
 export const COMBINATION_HIRAGANA = combinationHiragana;
 export const COMBINATION_KATAKANA = combinationKatakana;
 
-// Helper function to get kana by difficulty
+// Variant selection interface (imported from gameUtils would cause circular dep)
+interface VariantSelection {
+  monographs: boolean;
+  diacritics: boolean;
+  digraphs: boolean;
+}
+
+// Helper function to get kana by multiple variant selections (GoKana-style)
+// Supports "both" mode for combined hiragana + katakana
+export function getKanaByVariants(
+  type: "hiragana" | "katakana" | "both",
+  variants: VariantSelection
+): KanaCharacter[] {
+  let pool: KanaCharacter[] = [];
+
+  const addHiragana = type === "hiragana" || type === "both";
+  const addKatakana = type === "katakana" || type === "both";
+
+  if (addHiragana) {
+    if (variants.monographs) pool = [...pool, ...basicHiragana];
+    if (variants.diacritics)
+      pool = [...pool, ...dakutenHiragana, ...handakutenHiragana];
+    if (variants.digraphs) pool = [...pool, ...combinationHiragana];
+  }
+
+  if (addKatakana) {
+    if (variants.monographs) pool = [...pool, ...basicKatakana];
+    if (variants.diacritics)
+      pool = [...pool, ...dakutenKatakana, ...handakutenKatakana];
+    if (variants.digraphs) pool = [...pool, ...combinationKatakana];
+  }
+
+  // If nothing selected, default to monographs
+  if (pool.length === 0) {
+    if (addHiragana && addKatakana) {
+      return [...basicHiragana, ...basicKatakana];
+    }
+    return type === "hiragana" ? basicHiragana : basicKatakana;
+  }
+
+  return pool;
+}
+
+// Helper function to get kana by difficulty (legacy)
 export function getKanaByDifficulty(
   type: "hiragana" | "katakana" | "mixed",
   difficulty: "beginner" | "intermediate" | "advanced"

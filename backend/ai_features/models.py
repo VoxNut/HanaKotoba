@@ -39,3 +39,39 @@ class FlashcardSet(models.Model):
     class Meta:
         db_table = 'flashcard_sets'
         ordering = ['-created_at']
+
+
+class KanaLeaderboardScore(models.Model):
+    """Leaderboard scores for Kana Practice Game"""
+    
+    KANA_TYPE_CHOICES = [
+        ('hiragana', 'Hiragana'),
+        ('katakana', 'Katakana'),
+        ('both', 'Both'),
+    ]
+    
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='kana_scores')
+    display_name = models.CharField(max_length=5)  # 5-character display name like HYDEH
+    kana_type = models.CharField(max_length=10, choices=KANA_TYPE_CHOICES)
+    # Variant key: combination of selected variants like "monographs", "monographs+diacritics", etc.
+    variant_key = models.CharField(max_length=50, default='monographs')
+    time_seconds = models.IntegerField()  # Time in seconds
+    accuracy = models.IntegerField()  # Accuracy percentage (0-100)
+    score = models.IntegerField()  # Total score
+    correct_answers = models.IntegerField()
+    wrong_answers = models.IntegerField()
+    best_streak = models.IntegerField()
+    session_length = models.IntegerField()  # Number of characters in session
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.display_name} - {self.kana_type}/{self.variant_key} - {self.time_seconds}s - {self.accuracy}%"
+    
+    class Meta:
+        db_table = 'kana_leaderboard_scores'
+        ordering = ['time_seconds', '-accuracy', '-created_at']  # Fastest time, then highest accuracy
+        indexes = [
+            models.Index(fields=['kana_type', 'variant_key', 'time_seconds']),
+            models.Index(fields=['created_at']),
+        ]

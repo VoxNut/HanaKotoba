@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import KanjiRecognitionHistory, FlashcardSet
+from .models import KanjiRecognitionHistory, FlashcardSet, KanaLeaderboardScore
 
 
 class KanjiRecognitionSerializer(serializers.ModelSerializer):
@@ -65,4 +65,47 @@ class TranslationResponseSerializer(serializers.Serializer):
     alternatives = serializers.ListField(child=serializers.CharField())
     source_language = serializers.CharField()
     target_language = serializers.CharField()
+
+
+class KanaLeaderboardScoreSerializer(serializers.ModelSerializer):
+    """Serializer for leaderboard scores"""
+    username = serializers.CharField(source='user.username', read_only=True)
+    time_formatted = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = KanaLeaderboardScore
+        fields = [
+            'id', 'display_name', 'username', 'kana_type', 'variant_key',
+            'time_seconds', 'time_formatted', 'accuracy', 'score',
+            'correct_answers', 'wrong_answers', 'best_streak',
+            'session_length', 'created_at'
+        ]
+        read_only_fields = ['id', 'user', 'created_at']
+    
+    def get_time_formatted(self, obj):
+        mins = obj.time_seconds // 60
+        secs = obj.time_seconds % 60
+        return f"{mins:02d}:{secs:02d}"
+
+
+class KanaScoreSubmitSerializer(serializers.Serializer):
+    """Serializer for submitting a new score"""
+    display_name = serializers.CharField(max_length=5, min_length=1)
+    kana_type = serializers.ChoiceField(choices=['hiragana', 'katakana', 'both'])
+    variant_key = serializers.CharField(max_length=50)  # e.g., "monographs", "monographs+diacritics"
+    time_seconds = serializers.IntegerField(min_value=1)
+    accuracy = serializers.IntegerField(min_value=0, max_value=100)
+    correct_answers = serializers.IntegerField(min_value=0)
+    wrong_answers = serializers.IntegerField(min_value=0)
+    best_streak = serializers.IntegerField(min_value=0)
+    session_length = serializers.IntegerField(min_value=1)
+    
+    def validate_variant_key(self, value):
+        """Validate that variant_key contains valid variants"""
+        valid_variants = {'monographs', 'diacritics', 'digraphs'}
+        parts = value.split('+')
+        for part in parts:
+            if part not in valid_variants:
+                raise serializers.ValidationError(f"Invalid variant: {part}")
+        return value
 

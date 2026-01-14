@@ -1,10 +1,17 @@
 // Game utilities for Kana Practice
-import { KanaCharacter, getKanaByDifficulty } from "../data/kanaData";
+import { KanaCharacter, getKanaByVariants } from "../data/kanaData";
 
-// Game Settings Interface
+// Variant selection (GoKana-style: can select multiple)
+export interface VariantSelection {
+  monographs: boolean;
+  diacritics: boolean;
+  digraphs: boolean;
+}
+
+// Game Settings Interface (GoKana-style)
 export interface GameSettings {
-  mode: "hiragana" | "katakana" | "mixed";
-  difficulty: "beginner" | "intermediate" | "advanced";
+  mode: "hiragana" | "katakana" | "both"; // "both" = hiragana + katakana combined
+  variants: VariantSelection; // Multiple variants can be selected
   timerEnabled: boolean;
   audioEnabled: boolean;
   sessionLength: number; // Number of characters per session (0 = unlimited)
@@ -61,15 +68,38 @@ export interface CharacterStat {
   lastSeen: number;
 }
 
-// Default settings
+// Default settings (GoKana-style)
 export const DEFAULT_SETTINGS: GameSettings = {
   mode: "hiragana",
-  difficulty: "beginner",
+  variants: {
+    monographs: true,
+    diacritics: false,
+    digraphs: false,
+  },
   timerEnabled: true,
   audioEnabled: true,
-  sessionLength: 20,
-  showHints: true,
+  sessionLength: 0, // Unlimited for GoKana-style (all characters in variant)
+  showHints: false,
 };
+
+// Get variant key for leaderboard (sorted for consistency)
+export function getVariantKey(variants: VariantSelection): string {
+  const parts: string[] = [];
+  if (variants.monographs) parts.push("monographs");
+  if (variants.diacritics) parts.push("diacritics");
+  if (variants.digraphs) parts.push("digraphs");
+  return parts.join("+") || "monographs"; // Default to monographs if nothing selected
+}
+
+// Parse variant key back to selection
+export function parseVariantKey(key: string): VariantSelection {
+  const parts = key.split("+");
+  return {
+    monographs: parts.includes("monographs"),
+    diacritics: parts.includes("diacritics"),
+    digraphs: parts.includes("digraphs"),
+  };
+}
 
 // Default game state
 export function createInitialGameState(
@@ -125,9 +155,9 @@ export function shuffleArray<T>(array: T[]): T[] {
   return shuffled;
 }
 
-// Filter kana by settings
+// Filter kana by settings (uses variant selection for GoKana-style filtering)
 export function filterKanaBySettings(settings: GameSettings): KanaCharacter[] {
-  return getKanaByDifficulty(settings.mode, settings.difficulty);
+  return getKanaByVariants(settings.mode, settings.variants);
 }
 
 // Calculate score
@@ -171,10 +201,28 @@ export function getProgressPercentage(
 const STATS_KEY = "kana_practice_stats";
 const SETTINGS_KEY = "kana_practice_settings";
 
-// Load stats from localStorage
+// Get user-specific stats key
+function getUserStatsKey(): string {
+  try {
+    const authStore = localStorage.getItem("auth-storage");
+    if (authStore) {
+      const parsed = JSON.parse(authStore);
+      const userId = parsed?.state?.user?.id;
+      if (userId) {
+        return `${STATS_KEY}_user_${userId}`;
+      }
+    }
+  } catch (e) {
+    console.error("Failed to get user ID for stats:", e);
+  }
+  return STATS_KEY; // Fallback to global stats if not logged in
+}
+
+// Load stats from localStorage (user-specific)
 export function loadStats(): GameStats {
   try {
-    const stored = localStorage.getItem(STATS_KEY);
+    const key = getUserStatsKey();
+    const stored = localStorage.getItem(key);
     if (stored) {
       return JSON.parse(stored);
     }
@@ -184,10 +232,11 @@ export function loadStats(): GameStats {
   return createDefaultStats();
 }
 
-// Save stats to localStorage
+// Save stats to localStorage (user-specific)
 export function saveStats(stats: GameStats): void {
   try {
-    localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+    const key = getUserStatsKey();
+    localStorage.setItem(key, JSON.stringify(stats));
   } catch (e) {
     console.error("Failed to save stats:", e);
   }
@@ -333,6 +382,24 @@ export function getDifficultyLabel(
       return "Intermediate (+diacritics)";
     case "advanced":
       return "Advanced (+combinations)";
+    default:
+      return "Unknown";
+  }
+}
+
+// Get variant label (GoKana-style)
+export function getVariantLabel(
+  variant: "monographs" | "diacritics" | "digraphs"
+): string {
+  switch (variant) {
+    case "monographs":
+      return "Basic kana characters (46 characters)";
+    case "diacritics":
+      return "Characters with dakuten/handakuten (が、ぱ, etc.)";
+    case "digraphs":
+      return "Combination characters (きゃ、しゅ, etc.)";
+    default:
+      return "Unknown";
   }
 }
 

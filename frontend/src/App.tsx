@@ -10,6 +10,7 @@ import HomePage from "./pages/HomePage";
 import KanaPracticePage from "./pages/KanaPracticePage";
 import KanjiGraphPage from "./pages/KanjiGraphPage";
 import KanjiPage from "./pages/KanjiPage";
+import LeaderboardPage from "./pages/LeaderboardPage";
 import LoginPage from "./pages/LoginPage";
 import PracticePage from "./pages/PracticePage";
 import RegisterPage from "./pages/RegisterPage";
@@ -24,6 +25,7 @@ function App() {
         <Route index element={<HomePage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
+        <Route path="leaderboard" element={<LeaderboardPage />} />
 
         {/* Protected routes */}
         <Route element={<PrivateRoute />}>

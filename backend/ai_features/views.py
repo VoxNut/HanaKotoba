@@ -13,12 +13,13 @@ from django.conf import settings
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import KanjiRecognitionHistory, FlashcardSet
+from .models import KanjiRecognitionHistory, FlashcardSet, KanaLeaderboardScore
 from .serializers import (
     KanjiRecognitionSerializer, FlashcardSetSerializer,
     KanjiRecognitionRequestSerializer, MnemonicGenerationRequestSerializer,
     PitchAccentRequestSerializer, FlashcardGenerationRequestSerializer,
-    TranslationRequestSerializer
+    TranslationRequestSerializer, KanaLeaderboardScoreSerializer,
+    KanaScoreSubmitSerializer
 )
 from .pitch_accent_service import get_pitch_accent_service
 from vocabulary.models import Kanji, KanjiMnemonic
@@ -513,3 +514,148 @@ class KanjiRecognitionHistoryViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return KanjiRecognitionHistory.objects.filter(user=self.request.user)
+
+
+class KanaLeaderboardViewSet(viewsets.GenericViewSet):
+    """ViewSet for Kana Practice leaderboard"""
+    serializer_class = KanaLeaderboardScoreSerializer
+    permission_classes = [permissions.AllowAny]  # Allow viewing without auth
+    
+    def get_queryset(self):
+        queryset = KanaLeaderboardScore.objects.all()
+        
+        # Filter by kana type
+        kana_type = self.request.query_params.get('kana_type')
+        if kana_type in ['hiragana', 'katakana']:
+            queryset = queryset.filter(kana_type=kana_type)
+        
+        # Filter by variant_key (GoKana style - can be combo like "monographs+diacritics")
+        variant_key = self.request.query_params.get('variant_key')
+        if variant_key:
+            queryset = queryset.filter(variant_key=variant_key)
+        
+        # Filter by month (for monthly reset)
+        from django.utils import timezone
+        
+        month_filter = self.request.query_params.get('month', 'current')
+        if month_filter == 'current':
+            # Get first day of current month
+            now = timezone.now()
+            first_day = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            queryset = queryset.filter(created_at__gte=first_day)
+        
+        return queryset.order_by('time_seconds', '-accuracy', '-created_at')
+    
+    def list(self, request):
+        """Get leaderboard scores with filters"""
+        queryset = self.get_queryset()[:100]  # Limit to top 100
+        serializer = self.get_serializer(queryset, many=True)
+        
+        # Add rank numbers
+        data = serializer.data
+        for i, score in enumerate(data):
+            score['rank'] = i + 1
+        
+        return Response({
+            'scores': data,
+            'filters': {
+                'kana_type': request.query_params.get('kana_type', 'all'),
+                'variant_key': request.query_params.get('variant_key', 'monographs'),
+                'month': request.query_params.get('month', 'current'),
+            }
+        })
+    
+    @action(detail=False, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def submit(self, request):
+        """Submit a new score to the leaderboard"""
+        serializer = KanaScoreSubmitSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        data = serializer.validated_data
+        
+        # Calculate score: (correct * 10) + (accuracy bonus) + (streak bonus) - (time penalty)
+        base_score = data['correct_answers'] * 10
+        accuracy_bonus = int(data['accuracy'] * 0.5)  # Up to 50 bonus for 100% accuracy
+        streak_bonus = data['best_streak'] * 2
+        time_penalty = min(data['time_seconds'] // 10, 50)  # Max 50 point penalty
+        calculated_score = max(0, base_score + accuracy_bonus + streak_bonus - time_penalty)
+        
+        # Create the score
+        score = KanaLeaderboardScore.objects.create(
+            user=request.user,
+            display_name=data['display_name'].upper()[:5],
+            kana_type=data['kana_type'],
+            variant_key=data['variant_key'],
+            time_seconds=data['time_seconds'],
+            accuracy=data['accuracy'],
+            score=calculated_score,
+            correct_answers=data['correct_answers'],
+            wrong_answers=data['wrong_answers'],
+            best_streak=data['best_streak'],
+            session_length=data['session_length'],
+        )
+        
+        # Get rank of this score (for the current month)
+        from django.utils import timezone
+        now = timezone.now()
+        first_day = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        
+        rank = KanaLeaderboardScore.objects.filter(
+            kana_type=score.kana_type,
+            variant_key=score.variant_key,
+            created_at__gte=first_day,
+            time_seconds__lt=score.time_seconds
+        ).count() + 1
+        
+        # Also count same time but higher accuracy
+        same_time_better = KanaLeaderboardScore.objects.filter(
+            kana_type=score.kana_type,
+            variant_key=score.variant_key,
+            created_at__gte=first_day,
+            time_seconds=score.time_seconds,
+            accuracy__gt=score.accuracy
+        ).count()
+        rank += same_time_better
+        
+        response_serializer = KanaLeaderboardScoreSerializer(score)
+        response_data = response_serializer.data
+        response_data['rank'] = rank
+        
+        return Response(response_data, status=status.HTTP_201_CREATED)
+    
+    @action(detail=False, methods=['get'])
+    def my_scores(self, request):
+        """Get current user's scores"""
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        scores = KanaLeaderboardScore.objects.filter(user=request.user).order_by('-created_at')[:50]
+        serializer = self.get_serializer(scores, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def my_best(self, request):
+        """Get current user's best score for each category"""
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        best_scores = []
+        # Get all unique combinations the user has played
+        user_combinations = KanaLeaderboardScore.objects.filter(
+            user=request.user
+        ).values('kana_type', 'variant_key').distinct()
+        
+        for combo in user_combinations:
+            score = KanaLeaderboardScore.objects.filter(
+                user=request.user,
+                kana_type=combo['kana_type'],
+                variant_key=combo['variant_key']
+            ).order_by('time_seconds', '-accuracy').first()
+            if score:
+                serializer = self.get_serializer(score)
+                data = serializer.data
+                data['category'] = f"{combo['kana_type']}_{combo['variant_key']}"
+                best_scores.append(data)
+        
+        return Response(best_scores)

@@ -1,6 +1,7 @@
 import {
   CheckCircle2,
   Clock,
+  Crown,
   Flame,
   Gamepad2,
   Home,
@@ -8,19 +9,19 @@ import {
   Pause,
   Play,
   RotateCcw,
-  Settings,
   SkipForward,
   Target,
   Trophy,
   Volume2,
-  VolumeX,
   X,
   XCircle,
   Zap,
 } from "lucide-react";
-import { useCallback, useEffect, useReducer, useRef } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { KanaCharacter } from "../data/kanaData";
+import { ScoreSubmission, submitScore } from "../services/leaderboardService";
+import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 import {
   GameSettings,
@@ -31,10 +32,10 @@ import {
   createInitialGameState,
   filterKanaBySettings,
   formatTime,
-  getDifficultyLabel,
   getHintOptions,
   getProgressPercentage,
   getRandomKana,
+  getVariantKey,
   loadSettings,
   loadStats,
   saveSettings,
@@ -458,6 +459,17 @@ export default function KanaPracticePage() {
 
           <div className="flex items-center gap-2">
             <Link
+              to="/leaderboard"
+              className={`p-2 rounded-lg ${
+                isDark
+                  ? "hover:bg-gray-700 text-yellow-400"
+                  : "hover:bg-gray-100 text-yellow-600"
+              }`}
+              title="Leaderboard"
+            >
+              <Crown className="w-5 h-5" />
+            </Link>
+            <Link
               to="/"
               className={`p-2 rounded-lg ${
                 isDark
@@ -662,6 +674,7 @@ export default function KanaPracticePage() {
               state.totalAttempts
             )}
             mistakes={state.mistakes}
+            settings={state.settings}
             onPlayAgain={handleStartGame}
             onHome={handleResetGame}
           />
@@ -688,198 +701,141 @@ function StartScreen({
 }: StartScreenProps) {
   const stats = loadStats();
 
+  // Get the example character for each variant based on current mode
+  const getVariantExample = (
+    variant: "monographs" | "diacritics" | "digraphs"
+  ) => {
+    // For "both" mode, show both hiragana and katakana
+    if (settings.mode === "both") {
+      switch (variant) {
+        case "monographs":
+          return "か カ";
+        case "diacritics":
+          return "が ガ";
+        case "digraphs":
+          return "きゃ";
+      }
+    }
+    const isHiragana = settings.mode === "hiragana";
+    switch (variant) {
+      case "monographs":
+        return isHiragana ? "か" : "カ";
+      case "diacritics":
+        return isHiragana ? "が" : "ガ";
+      case "digraphs":
+        return isHiragana ? "きゃ" : "キャ";
+    }
+  };
+
+  // Toggle variant selection (at least one must be selected)
+  const toggleVariant = (variant: "monographs" | "diacritics" | "digraphs") => {
+    const newVariants = { ...settings.variants };
+    newVariants[variant] = !newVariants[variant];
+
+    // Ensure at least one is selected
+    if (
+      !newVariants.monographs &&
+      !newVariants.diacritics &&
+      !newVariants.digraphs
+    ) {
+      return; // Don't allow deselecting all
+    }
+
+    onSettingsChange({ variants: newVariants });
+  };
+
+  // Check if at least one variant is selected
+  const hasSelection =
+    settings.variants.monographs ||
+    settings.variants.diacritics ||
+    settings.variants.digraphs;
+
   return (
     <div className="space-y-8">
-      {/* Welcome Card */}
+      {/* GoKana-style Settings Card */}
       <div
-        className={`rounded-3xl p-8 text-center ${
-          isDark ? "bg-gray-800/50" : "bg-white shadow-lg"
+        className={`rounded-3xl p-8 ${
+          isDark ? "bg-gray-800/80" : "bg-gray-700/90"
         }`}
       >
-        <div className="text-6xl mb-4">🎮</div>
-        <h2
-          className={`text-3xl font-bold mb-2 ${
-            isDark ? "text-white" : "text-gray-900"
-          }`}
-        >
-          Kana Practice Game
-        </h2>
-        <p className={`${isDark ? "text-gray-400" : "text-gray-600"}`}>
-          Master Japanese hiragana and katakana through fun practice!
-        </p>
-      </div>
-
-      {/* Settings Card */}
-      <div
-        className={`rounded-3xl p-6 ${
-          isDark ? "bg-gray-800/50" : "bg-white shadow-lg"
-        }`}
-      >
-        <h3
-          className={`text-xl font-semibold mb-6 flex items-center gap-2 ${
-            isDark ? "text-white" : "text-gray-900"
-          }`}
-        >
-          <Settings className="w-5 h-5" />
-          Game Settings
-        </h3>
-
-        <div className="space-y-6">
-          {/* Mode Selection */}
-          <div>
-            <label
-              className={`block text-sm font-medium mb-2 ${
-                isDark ? "text-gray-300" : "text-gray-700"
-              }`}
-            >
+        <div className="space-y-8">
+          {/* Writing System Selection */}
+          <div className="text-center">
+            <h3 className="text-sm font-bold tracking-[0.3em] text-gray-400 mb-4 uppercase">
               Writing System
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {(["hiragana", "katakana", "mixed"] as const).map((mode) => (
+            </h3>
+            <div className="flex justify-center gap-4">
+              {(["hiragana", "katakana", "both"] as const).map((mode) => (
                 <button
                   key={mode}
                   onClick={() => onSettingsChange({ mode })}
-                  className={`py-3 px-4 rounded-xl font-medium transition-all ${
+                  className={`w-28 h-24 rounded-xl font-medium transition-all flex flex-col items-center justify-center gap-1 ${
                     settings.mode === mode
-                      ? "bg-primary-500 text-white"
-                      : isDark
-                      ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      ? "bg-primary-500 text-white ring-2 ring-primary-400"
+                      : "bg-gray-600 text-gray-300 hover:bg-gray-500"
                   }`}
                 >
-                  {mode === "hiragana"
-                    ? "ひらがな"
-                    : mode === "katakana"
-                    ? "カタカナ"
-                    : "Mixed"}
+                  <span className="text-2xl">
+                    {mode === "hiragana"
+                      ? "か"
+                      : mode === "katakana"
+                      ? "カ"
+                      : "か カ"}
+                  </span>
+                  <span className="text-xs capitalize">
+                    {mode === "both" ? "Both" : mode}
+                  </span>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Difficulty Selection */}
-          <div>
-            <label
-              className={`block text-sm font-medium mb-2 ${
-                isDark ? "text-gray-300" : "text-gray-700"
-              }`}
-            >
-              Difficulty
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {(["beginner", "intermediate", "advanced"] as const).map(
-                (diff) => (
+          {/* Variants Selection (GoKana-style - Multiple Selection) */}
+          <div className="text-center">
+            <h3 className="text-sm font-bold tracking-[0.3em] text-gray-400 mb-4 uppercase">
+              Variants{" "}
+              <span className="text-xs normal-case">(select one or more)</span>
+            </h3>
+            <div className="flex justify-center gap-4">
+              {(["monographs", "diacritics", "digraphs"] as const).map(
+                (variant) => (
                   <button
-                    key={diff}
-                    onClick={() => onSettingsChange({ difficulty: diff })}
-                    className={`py-3 px-4 rounded-xl font-medium transition-all ${
-                      settings.difficulty === diff
-                        ? "bg-primary-500 text-white"
-                        : isDark
-                        ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    key={variant}
+                    onClick={() => toggleVariant(variant)}
+                    className={`w-28 h-24 rounded-xl font-medium transition-all flex flex-col items-center justify-center gap-1 ${
+                      settings.variants[variant]
+                        ? "bg-primary-500 text-white ring-2 ring-primary-400"
+                        : "bg-gray-600 text-gray-300 hover:bg-gray-500"
                     }`}
                   >
-                    {diff.charAt(0).toUpperCase() + diff.slice(1)}
+                    <span className="text-3xl">
+                      {getVariantExample(variant)}
+                    </span>
+                    <span className="text-xs capitalize">{variant}</span>
                   </button>
                 )
               )}
             </div>
-            <p
-              className={`mt-2 text-sm ${
-                isDark ? "text-gray-500" : "text-gray-400"
-              }`}
-            >
-              {getDifficultyLabel(settings.difficulty)}
-            </p>
           </div>
 
-          {/* Session Length */}
-          <div>
-            <label
-              className={`block text-sm font-medium mb-2 ${
-                isDark ? "text-gray-300" : "text-gray-700"
-              }`}
-            >
-              Session Length
-            </label>
-            <div className="grid grid-cols-4 gap-2">
-              {[10, 20, 50, 0].map((len) => (
-                <button
-                  key={len}
-                  onClick={() => onSettingsChange({ sessionLength: len })}
-                  className={`py-3 px-4 rounded-xl font-medium transition-all ${
-                    settings.sessionLength === len
-                      ? "bg-primary-500 text-white"
-                      : isDark
-                      ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  {len === 0 ? "∞" : len}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Toggle Options */}
-          <div className="flex flex-wrap gap-4">
+          {/* Start Button - Centered */}
+          <div className="flex justify-center pt-4">
             <button
-              onClick={() =>
-                onSettingsChange({ timerEnabled: !settings.timerEnabled })
-              }
-              className={`flex items-center gap-2 py-2 px-4 rounded-xl transition-all ${
-                settings.timerEnabled
-                  ? "bg-green-500/20 text-green-500 border border-green-500"
-                  : isDark
-                  ? "bg-gray-700 text-gray-400"
-                  : "bg-gray-100 text-gray-500"
+              onClick={onStart}
+              disabled={!hasSelection}
+              className={`px-12 py-3 font-bold rounded-lg shadow-lg transition-all transform uppercase tracking-wider ${
+                hasSelection
+                  ? "bg-primary-500 hover:bg-primary-600 text-white hover:scale-105"
+                  : "bg-gray-500 text-gray-300 cursor-not-allowed"
               }`}
             >
-              <Clock className="w-4 h-4" />
-              Timer
-            </button>
-
-            <button
-              onClick={() =>
-                onSettingsChange({ audioEnabled: !settings.audioEnabled })
-              }
-              className={`flex items-center gap-2 py-2 px-4 rounded-xl transition-all ${
-                settings.audioEnabled
-                  ? "bg-green-500/20 text-green-500 border border-green-500"
-                  : isDark
-                  ? "bg-gray-700 text-gray-400"
-                  : "bg-gray-100 text-gray-500"
-              }`}
-            >
-              {settings.audioEnabled ? (
-                <Volume2 className="w-4 h-4" />
-              ) : (
-                <VolumeX className="w-4 h-4" />
-              )}
-              Audio
-            </button>
-
-            <button
-              onClick={() =>
-                onSettingsChange({ showHints: !settings.showHints })
-              }
-              className={`flex items-center gap-2 py-2 px-4 rounded-xl transition-all ${
-                settings.showHints
-                  ? "bg-green-500/20 text-green-500 border border-green-500"
-                  : isDark
-                  ? "bg-gray-700 text-gray-400"
-                  : "bg-gray-100 text-gray-500"
-              }`}
-            >
-              <Lightbulb className="w-4 h-4" />
-              Hints
+              Start
             </button>
           </div>
         </div>
       </div>
 
-      {/* Stats Card */}
+      {/* Stats Card (Optional - shown if user has played before) */}
       {stats.totalSessions > 0 && (
         <div
           className={`rounded-3xl p-6 ${
@@ -947,14 +903,16 @@ function StartScreen({
         </div>
       )}
 
-      {/* Start Button */}
-      <button
-        onClick={onStart}
-        className="w-full py-5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white text-xl font-bold rounded-2xl shadow-lg shadow-primary-500/25 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3"
-      >
-        <Play className="w-6 h-6" />
-        Start Game
-      </button>
+      {/* Leaderboard Link */}
+      <div className="text-center">
+        <Link
+          to="/leaderboard"
+          className="inline-flex items-center gap-2 text-yellow-500 hover:text-yellow-400 font-medium"
+        >
+          <Crown className="w-5 h-5" />
+          View Leaderboard
+        </Link>
+      </div>
     </div>
   );
 }
@@ -1185,6 +1143,7 @@ interface ResultsScreenProps {
   timeElapsed: number;
   accuracy: number;
   mistakes: MistakeRecord[];
+  settings: GameSettings;
   onPlayAgain: () => void;
   onHome: () => void;
 }
@@ -1198,9 +1157,17 @@ function ResultsScreen({
   timeElapsed,
   accuracy,
   mistakes,
+  settings,
   onPlayAgain,
   onHome,
 }: ResultsScreenProps) {
+  const { isAuthenticated } = useAuthStore();
+  const [displayName, setDisplayName] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submittedRank, setSubmittedRank] = useState<number | null>(null);
+
   // Determine performance grade
   const getGrade = () => {
     if (accuracy >= 95)
@@ -1215,6 +1182,46 @@ function ResultsScreen({
   };
 
   const { grade, color, emoji } = getGrade();
+
+  // Map settings to leaderboard format
+  const getKanaType = (): "hiragana" | "katakana" | "both" => {
+    return settings.mode;
+  };
+
+  const handleSubmitScore = async () => {
+    if (!displayName.trim() || displayName.length > 5) {
+      setSubmitError("Display name must be 1-5 characters");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      // Calculate actual session length (characters practiced = correct + wrong)
+      const actualSessionLength = correctAnswers + wrongAnswers;
+
+      const submission: ScoreSubmission = {
+        display_name: displayName.trim().toUpperCase(),
+        kana_type: getKanaType(),
+        variant_key: getVariantKey(settings.variants),
+        time_seconds: timeElapsed,
+        accuracy: accuracy,
+        correct_answers: correctAnswers,
+        wrong_answers: wrongAnswers,
+        best_streak: bestStreak,
+        session_length: actualSessionLength > 0 ? actualSessionLength : 1,
+      };
+
+      const response = await submitScore(submission);
+      setSubmitted(true);
+      setSubmittedRank(response.rank || null);
+    } catch (error: any) {
+      setSubmitError(error.response?.data?.error || "Failed to submit score");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -1322,6 +1329,127 @@ function ResultsScreen({
         </div>
       </div>
 
+      {/* Leaderboard Submission */}
+      {isAuthenticated && !submitted && (
+        <div
+          className={`rounded-3xl p-6 ${
+            isDark ? "bg-gray-800/50" : "bg-white shadow-lg"
+          }`}
+        >
+          <h3
+            className={`text-xl font-semibold mb-4 flex items-center gap-2 ${
+              isDark ? "text-white" : "text-gray-900"
+            }`}
+          >
+            <Crown className="w-5 h-5 text-yellow-500" />
+            Submit to Leaderboard
+          </h3>
+          <div className="flex flex-col sm:flex-row gap-4 items-center">
+            <div className="flex-1 w-full">
+              <input
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value.slice(0, 5))}
+                placeholder="NAME (5 chars max)"
+                maxLength={5}
+                className={`w-full px-4 py-3 rounded-xl text-center font-mono text-lg uppercase tracking-wider ${
+                  isDark
+                    ? "bg-gray-700 text-white placeholder-gray-400 border-gray-600"
+                    : "bg-gray-100 text-gray-900 placeholder-gray-400 border-gray-300"
+                } border-2 focus:border-primary-500 focus:outline-none`}
+              />
+              <p
+                className={`text-xs mt-1 text-center ${
+                  isDark ? "text-gray-400" : "text-gray-500"
+                }`}
+              >
+                {displayName.length}/5 characters • {getKanaType()} •{" "}
+                {getVariantKey(settings.variants)}
+              </p>
+            </div>
+            <button
+              onClick={handleSubmitScore}
+              disabled={isSubmitting || !displayName.trim()}
+              className={`px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all ${
+                isSubmitting || !displayName.trim()
+                  ? "bg-gray-400 cursor-not-allowed text-gray-200"
+                  : "bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white"
+              }`}
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <Crown className="w-5 h-5" />
+                  Submit Score
+                </>
+              )}
+            </button>
+          </div>
+          {submitError && (
+            <p className="text-red-500 text-sm mt-2 text-center">
+              {submitError}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Submission Success */}
+      {submitted && (
+        <div
+          className={`rounded-3xl p-6 text-center ${
+            isDark ? "bg-green-900/30" : "bg-green-50"
+          }`}
+        >
+          <CheckCircle2 className="w-12 h-12 mx-auto mb-3 text-green-500" />
+          <h3
+            className={`text-xl font-semibold mb-2 ${
+              isDark ? "text-white" : "text-gray-900"
+            }`}
+          >
+            Score Submitted!
+          </h3>
+          {submittedRank && (
+            <p className={isDark ? "text-gray-300" : "text-gray-600"}>
+              Your rank:{" "}
+              <span className="font-bold text-primary-500">
+                #{submittedRank}
+              </span>
+            </p>
+          )}
+          <Link
+            to="/leaderboard"
+            className="inline-flex items-center gap-2 mt-4 text-primary-500 hover:text-primary-600 font-medium"
+          >
+            <Crown className="w-4 h-4" />
+            View Leaderboard
+          </Link>
+        </div>
+      )}
+
+      {/* Not Authenticated Notice */}
+      {!isAuthenticated && (
+        <div
+          className={`rounded-3xl p-6 text-center ${
+            isDark ? "bg-gray-800/50" : "bg-white shadow-lg"
+          }`}
+        >
+          <Crown className="w-10 h-10 mx-auto mb-3 text-gray-400" />
+          <p className={isDark ? "text-gray-300" : "text-gray-600"}>
+            <Link
+              to="/login"
+              className="text-primary-500 hover:underline font-medium"
+            >
+              Log in
+            </Link>{" "}
+            to submit your score to the leaderboard!
+          </p>
+        </div>
+      )}
+
       {/* Mistakes Review */}
       {mistakes.length > 0 && (
         <div
@@ -1342,10 +1470,14 @@ function ResultsScreen({
               <div
                 key={idx}
                 className={`p-4 rounded-xl text-center ${
-                  isDark ? "bg-red-900/30" : "bg-red-50"
+                  isDark ? "bg-gray-700/80" : "bg-gray-100"
                 }`}
               >
-                <div className="text-3xl font-bold mb-1">
+                <div
+                  className={`text-3xl font-bold mb-1 ${
+                    isDark ? "text-white" : "text-gray-900"
+                  }`}
+                >
                   {mistake.kana.character}
                 </div>
                 <div className="text-green-500 font-medium">
@@ -1369,6 +1501,16 @@ function ResultsScreen({
           <RotateCcw className="w-5 h-5" />
           Play Again
         </button>
+        <Link
+          to="/leaderboard"
+          className={`py-4 px-6 rounded-2xl font-semibold flex items-center gap-2 ${
+            isDark
+              ? "bg-yellow-600 hover:bg-yellow-500 text-white"
+              : "bg-yellow-500 hover:bg-yellow-600 text-white"
+          }`}
+        >
+          <Crown className="w-5 h-5" />
+        </Link>
         <button
           onClick={onHome}
           className={`py-4 px-6 rounded-2xl font-semibold flex items-center gap-2 ${
