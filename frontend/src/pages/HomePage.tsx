@@ -8,6 +8,7 @@ import {
   Gamepad2,
   Languages,
   LayoutGrid,
+  Library,
   PenTool,
   Scroll,
   Speech,
@@ -99,6 +100,13 @@ export default function HomePage() {
       description:
         "Read manga with AI-powered OCR. Hover over text to see readings, pitch accent, and translations. Add words to your flashcards with one click.",
       route: "/manga-reader",
+    },
+    {
+      title: "Manga Library",
+      icon: Library,
+      description:
+        "Manage your manga collection. View, search, sort, and delete volumes. Track storage usage and OCR status.",
+      route: "/library",
     },
   ];
 

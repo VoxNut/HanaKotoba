@@ -65,6 +65,8 @@ interface MangaReaderProps {
     reading: string,
     translation: string
   ) => void;
+  /** Volume ID to load automatically on mount */
+  initialVolumeId?: string;
 }
 
 // IndexedDB helper functions
@@ -126,7 +128,10 @@ async function deleteVolume(id: string): Promise<void> {
   });
 }
 
-export default function MangaReader({ onAddToFlashcards }: MangaReaderProps) {
+export default function MangaReader({
+  onAddToFlashcards,
+  initialVolumeId,
+}: MangaReaderProps) {
   const isDark = useThemeStore((state) => state.isDark);
 
   // State
@@ -177,6 +182,16 @@ export default function MangaReader({ onAddToFlashcards }: MangaReaderProps) {
   useEffect(() => {
     loadStoredVolumes();
   }, []);
+
+  // Auto-load initial volume if specified
+  useEffect(() => {
+    if (initialVolumeId && storedVolumes.length > 0 && pages.length === 0) {
+      const volumeExists = storedVolumes.some((v) => v.id === initialVolumeId);
+      if (volumeExists) {
+        loadVolumeFromLibrary(initialVolumeId);
+      }
+    }
+  }, [initialVolumeId, storedVolumes]);
 
   const loadStoredVolumes = async () => {
     try {

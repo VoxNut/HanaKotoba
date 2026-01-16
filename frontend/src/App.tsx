@@ -11,6 +11,7 @@ import KanaPracticePage from "./pages/KanaPracticePage";
 import KanjiGraphPage from "./pages/KanjiGraphPage";
 import KanjiPage from "./pages/KanjiPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
+import LibraryPage from "./pages/LibraryPage";
 import LoginPage from "./pages/LoginPage";
 import MangaReaderPage from "./pages/MangaReaderPage";
 import PracticePage from "./pages/PracticePage";
@@ -43,6 +44,7 @@ function App() {
           <Route path="text-to-speech" element={<TextToSpeechPage />} />
           <Route path="translation" element={<TranslationPage />} />
           <Route path="manga-reader" element={<MangaReaderPage />} />
+          <Route path="library" element={<LibraryPage />} />
         </Route>
       </Route>
     </Routes>

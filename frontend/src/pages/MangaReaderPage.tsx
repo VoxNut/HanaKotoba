@@ -5,9 +5,9 @@
  * Provides navigation and flashcard integration.
  */
 
-import { BookOpen, Check, Home, Plus, X } from "lucide-react";
+import { BookOpen, Check, Home, Library, Plus, X } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import MangaReader from "../components/manga/MangaReader";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
@@ -15,6 +15,8 @@ import { useThemeStore } from "../store/themeStore";
 export default function MangaReaderPage() {
   const isDark = useThemeStore((state) => state.isDark);
   const { isAuthenticated } = useAuthStore();
+  const [searchParams] = useSearchParams();
+  const initialVolumeId = searchParams.get("volume");
 
   // Flashcard creation state
   const [showFlashcardModal, setShowFlashcardModal] = useState(false);
@@ -88,6 +90,17 @@ export default function MangaReaderPage() {
               </Link>
             )}
             <Link
+              to="/library"
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                isDark
+                  ? "hover:bg-gray-700 text-gray-400"
+                  : "hover:bg-gray-100 text-gray-600"
+              }`}
+            >
+              <Library className="w-5 h-5" />
+              <span className="text-sm">Library</span>
+            </Link>
+            <Link
               to="/"
               className={`p-2 rounded-lg transition-colors ${
                 isDark
@@ -107,6 +120,7 @@ export default function MangaReaderPage() {
           onAddToFlashcards={
             isAuthenticated ? handleAddToFlashcards : undefined
           }
+          initialVolumeId={initialVolumeId ?? undefined}
         />
       </main>
 
