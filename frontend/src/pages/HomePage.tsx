@@ -1,6 +1,7 @@
 import {
   BookOpen,
   BookOpenCheck,
+  BookText,
   ChartNetwork,
   ClipboardCheck,
   FlowerIcon,
@@ -91,6 +92,13 @@ export default function HomePage() {
       description:
         "Translate between Japanese and English with auto-detection. Powered by free NLLB-200 AI model.",
       route: "/translation",
+    },
+    {
+      title: "Manga Reader",
+      icon: BookText,
+      description:
+        "Read manga with AI-powered OCR. Hover over text to see readings, pitch accent, and translations. Add words to your flashcards with one click.",
+      route: "/manga-reader",
     },
   ];
 

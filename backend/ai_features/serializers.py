@@ -109,3 +109,49 @@ class KanaScoreSubmitSerializer(serializers.Serializer):
                 raise serializers.ValidationError(f"Invalid variant: {part}")
         return value
 
+
+# ==================== Manga OCR Serializers ====================
+
+class MangaTextBoxSerializer(serializers.Serializer):
+    """Serializer for a single text box in a manga page"""
+    id = serializers.CharField()
+    text = serializers.CharField()
+    x = serializers.FloatField()  # Percentage from left
+    y = serializers.FloatField()  # Percentage from top
+    width = serializers.FloatField()
+    height = serializers.FloatField()
+    confidence = serializers.FloatField()
+    vertical = serializers.BooleanField()
+
+
+class MangaProcessRequestSerializer(serializers.Serializer):
+    """Serializer for manga image processing request"""
+    image = serializers.CharField(help_text="Base64 encoded image data")
+    filename = serializers.CharField(max_length=255, required=False, default="manga.jpg")
+
+
+class EnrichedTextBoxSerializer(serializers.Serializer):
+    """Serializer for text box with additional linguistic data"""
+    id = serializers.CharField()
+    text = serializers.CharField()
+    x = serializers.FloatField()
+    y = serializers.FloatField()
+    width = serializers.FloatField()
+    height = serializers.FloatField()
+    confidence = serializers.FloatField()
+    vertical = serializers.BooleanField()
+    lines = serializers.ListField(child=serializers.CharField(), required=False)
+    font_size = serializers.FloatField(required=False)
+    # Enhanced data
+    tokens = serializers.ListField(child=serializers.DictField(), required=False)
+    pitch_accent = serializers.ListField(child=serializers.DictField(), required=False)
+    translation = serializers.CharField(required=False, allow_blank=True)
+
+
+class MangaPageResponseSerializer(serializers.Serializer):
+    """Serializer for processed manga page response"""
+    page_id = serializers.CharField()
+    text_boxes = EnrichedTextBoxSerializer(many=True)
+    raw_text = serializers.CharField()
+    img_width = serializers.IntegerField(required=False)
+    img_height = serializers.IntegerField(required=False)

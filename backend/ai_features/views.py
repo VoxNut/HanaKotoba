@@ -659,3 +659,197 @@ class KanaLeaderboardViewSet(viewsets.GenericViewSet):
                 best_scores.append(data)
         
         return Response(best_scores)
+
+
+# ==================== Manga OCR ViewSet ====================
+
+class MangaOCRViewSet(viewsets.GenericViewSet):
+    """
+    ViewSet for Manga OCR using Mokuro.
+    
+    Provides endpoints for:
+    - Processing manga images and extracting text
+    - Getting enriched results with pitch accent and translation
+    """
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
+    @action(detail=False, methods=['post'])
+    def process(self, request):
+        """
+        Process a manga image and extract text boxes.
+        
+        Expects base64 encoded image data.
+        Returns text boxes with positions and extracted text.
+        """
+        from .serializers import MangaProcessRequestSerializer, MangaPageResponseSerializer
+        from .mokuro_service import get_mokuro_service, manga_page_result_to_dict
+        
+        serializer = MangaProcessRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            mokuro = get_mokuro_service()
+            
+            if not mokuro.is_available():
+                return Response(
+                    {'error': 'Mokuro/MangaOCR not available. Install with: pip install mokuro manga-ocr'},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE
+                )
+            
+            # Process the image
+            result = mokuro.process_image_base64(
+                serializer.validated_data['image'],
+                serializer.validated_data.get('filename', 'manga.jpg')
+            )
+            
+            # Convert to dict for response
+            response_data = manga_page_result_to_dict(result)
+            
+            return Response(response_data, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to process image: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['post'])
+    def process_enriched(self, request):
+        """
+        Process a manga image with full enrichment.
+        
+        Returns text boxes with:
+        - Extracted text
+        - Fugashi tokenization
+        - Pitch accent data
+        - Translation (optional)
+        """
+        from .serializers import MangaProcessRequestSerializer
+        from .mokuro_service import get_mokuro_service, text_box_to_dict
+        from .pitch_accent_service import get_pitch_accent_service
+        
+        serializer = MangaProcessRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        include_translation = request.data.get('include_translation', False)
+        
+        try:
+            mokuro = get_mokuro_service()
+            pitch_service = get_pitch_accent_service()
+            
+            if not mokuro.is_available():
+                return Response(
+                    {'error': 'Mokuro/MangaOCR not available'},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE
+                )
+            
+            # Process the image
+            result = mokuro.process_image_base64(
+                serializer.validated_data['image'],
+                serializer.validated_data.get('filename', 'manga.jpg')
+            )
+            
+            # Enrich each text box
+            enriched_boxes = []
+            for box in result.text_boxes:
+                box_dict = text_box_to_dict(box)
+                
+                # Add pitch accent analysis
+                try:
+                    pitch_result = pitch_service.analyze(box.text)
+                    box_dict['pitch_accent'] = [
+                        {
+                            'word': w.word,
+                            'reading': w.reading,
+                            'pitch_number': w.pitch_number,
+                            'pattern': w.pattern.value if hasattr(w.pattern, 'value') else str(w.pattern),
+                            'morae': [
+                                {
+                                    'mora': m.mora,
+                                    'pitch': m.pitch,
+                                    'is_accented': m.is_accented
+                                }
+                                for m in w.morae
+                            ]
+                        }
+                        for w in pitch_result
+                    ]
+                    
+                    # Extract tokens for furigana display
+                    box_dict['tokens'] = [
+                        {
+                            'surface': w.word,
+                            'reading': w.reading,
+                        }
+                        for w in pitch_result
+                    ]
+                except Exception as e:
+                    box_dict['pitch_accent'] = []
+                    box_dict['tokens'] = []
+                
+                # Add translation if requested
+                if include_translation:
+                    try:
+                        # Use existing translation endpoint logic
+                        box_dict['translation'] = self._translate_text(box.text)
+                    except Exception:
+                        box_dict['translation'] = ''
+                else:
+                    box_dict['translation'] = ''
+                
+                enriched_boxes.append(box_dict)
+            
+            response_data = {
+                'page_id': result.page_id,
+                'text_boxes': enriched_boxes,
+                'raw_text': result.raw_text,
+                'img_width': result.img_width,
+                'img_height': result.img_height,
+            }
+            
+            return Response(response_data, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to process image: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def _translate_text(self, text: str) -> str:
+        """Translate Japanese text to English using available services."""
+        try:
+            # Try Hugging Face NLLB model first
+            response = requests.post(
+                'https://api-inference.huggingface.co/models/facebook/nllb-200-distilled-600M',
+                headers={'Authorization': f'Bearer {settings.HUGGINGFACE_API_KEY}'},
+                json={
+                    'inputs': text,
+                    'parameters': {
+                        'src_lang': 'jpn_Jpan',
+                        'tgt_lang': 'eng_Latn'
+                    }
+                },
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if isinstance(result, list) and len(result) > 0:
+                    return result[0].get('translation_text', '')
+        except Exception:
+            pass
+        
+        return ''
+    
+    @action(detail=False, methods=['get'])
+    def status(self, request):
+        """Check if Mokuro/MangaOCR services are available."""
+        from .mokuro_service import MOKURO_AVAILABLE, MANGA_OCR_AVAILABLE
+        
+        return Response({
+            'mokuro_available': MOKURO_AVAILABLE,
+            'manga_ocr_available': MANGA_OCR_AVAILABLE,
+            'service_ready': MOKURO_AVAILABLE or MANGA_OCR_AVAILABLE
+        })

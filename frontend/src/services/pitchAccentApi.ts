@@ -33,7 +33,7 @@ interface PitchAccentApiResponse {
  */
 function convertApiResponse(apiWords: ApiWordPitchInfo[]): WordPitchInfo[] {
   return apiWords.map((word) => {
-    const moraInfos: MoraInfo[] = word.morae.map((mora, idx) => ({
+    const moraInfos: MoraInfo[] = word.morae.map((mora) => ({
       mora: mora.mora,
       pitch: mora.pitch === "H" ? "high" : "low",
       isParticle: false, // Backend handles this internally

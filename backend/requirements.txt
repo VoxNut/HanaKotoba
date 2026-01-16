@@ -22,3 +22,8 @@ lxml>=4.9.0
 
 # Japanese morphological analysis (Fugashi + MeCab)
 fugashi[unidic-lite]>=1.3.0
+
+# Manga OCR (Mokuro uses comic-text-detector + manga-ocr)
+# Mokuro provides MangaPageOcr class for text detection + OCR
+# See: https://github.com/kha-white/mokuro
+mokuro>=0.2.0
