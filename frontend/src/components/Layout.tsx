@@ -165,6 +165,28 @@ export default function Layout() {
                         >
                           Text-to-Speech
                         </Link>
+                        <Link
+                          to="/translation"
+                          className={`block px-4 py-2 rounded-b-lg transition-colors ${
+                            isDark
+                              ? "hover:bg-gray-700 text-gray-200"
+                              : "hover:bg-gray-50 text-gray-700"
+                          }`}
+                          onClick={() => setShowNav(false)}
+                        >
+                          Translation
+                        </Link>
+                        <Link
+                          to="/manga-reader"
+                          className={`block px-4 py-2 rounded-b-lg transition-colors ${
+                            isDark
+                              ? "hover:bg-gray-700 text-gray-200"
+                              : "hover:bg-gray-50 text-gray-700"
+                          }`}
+                          onClick={() => setShowNav(false)}
+                        >
+                          Manga Reader
+                        </Link>
                       </div>
                     )}
                   </div>
